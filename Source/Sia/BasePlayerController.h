@@ -1,11 +1,14 @@
+
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "InventoryWidget.h"
 #include "BasePlayerController.generated.h"
 
 class UInputMappingContext;
 class UInputAction;
+class UCombatHUDWidget;
 struct FInputActionValue;
 
 UCLASS()
@@ -13,9 +16,36 @@ class SIA_API ABasePlayerController : public APlayerController
 {
     GENERATED_BODY()
 
+public:
+    ABasePlayerController();
+
+    void RefreshHealthUI();
+    void ShowDamageNumber(float Damage, const FVector& WorldPosition);
+
+    UFUNCTION(BlueprintCallable, Category = "Inventory|UI")
+    void ToggleInventory();
+
+    UFUNCTION(BlueprintCallable, Category = "Inventory|UI")
+    void SetInventoryItems(const TArray<FInventoryItemView>& Items);
+
+    UFUNCTION(BlueprintPure, Category = "Inventory|UI")
+    UInventoryWidget* GetInventoryWidget() const
+    {
+        return InventoryUI;
+    }
+
 protected:
     virtual void BeginPlay() override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+    virtual void OnPossess(APawn* InPawn) override;
+    virtual void OnUnPossess() override;
     virtual void SetupInputComponent() override;
+
+    UPROPERTY(EditDefaultsOnly, Category = "UI")
+    TSubclassOf<UCombatHUDWidget> HealthHUDClass;
+
+    UPROPERTY(EditDefaultsOnly, Category = "UI")
+    TSoftClassPtr<UInventoryWidget> InventoryWidgetClass;
 
     UPROPERTY(EditDefaultsOnly, Category = "Input")
     TObjectPtr<UInputMappingContext> DefaultMappingContext;
@@ -30,6 +60,9 @@ protected:
     TObjectPtr<UInputAction> LookAction;
 
     UPROPERTY(EditDefaultsOnly, Category = "Input")
+    TObjectPtr<UInputAction> MouseLookAction;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Input")
     TObjectPtr<UInputAction> JumpAction;
 
     UPROPERTY(EditDefaultsOnly, Category = "Input")
@@ -38,14 +71,28 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category = "Input")
     TObjectPtr<UInputAction> AttackAction;
 
- 
+    UPROPERTY(EditDefaultsOnly, Category = "Input")
+    TObjectPtr<UInputAction> InventoryAction;
+
 private:
+    UPROPERTY(Transient)
+    TObjectPtr<UCombatHUDWidget> CombatHUD;
+
+    UPROPERTY(Transient)
+    TObjectPtr<UInventoryWidget> InventoryUI;
+
+    UPROPERTY(Transient)
+    TArray<FInventoryItemView> InventoryView;
+
+    bool bInventoryOpen = false;
+
+    void CreateCombatHUD();
+
     void Move(const FInputActionValue& Value);
     void Look(const FInputActionValue& Value);
 
     void StartJump();
     void StopJump();
-
     void Dash();
     void Attack();
 };

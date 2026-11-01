@@ -1,5 +1,8 @@
 
 #include "BaseCharacter.h"
+#include "BasePlayerController.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/DamageType.h"
 #include "CharacterAnimationComponent.h"
 
 #include "Camera/CameraComponent.h"
@@ -7,8 +10,12 @@
 #include "Components/BoxComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/RootMotionSource.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Engine/SkeletalMesh.h"
+#include "Engine/Engine.h"
+#include "Engine/World.h"
+#include "Engine/OverlapResult.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -79,10 +86,18 @@ ABaseCharacter::ABaseCharacter()
     AttackHitbox->SetCollisionEnabled(
         ECollisionEnabled::NoCollision
     );
+    AttackHitbox->SetHiddenInGame(true);
 
     AttackHitbox->SetGenerateOverlapEvents(true);
+    AttackHitbox->bDrawOnlyIfSelected = false;
+    AttackHitbox->ShapeColor = FColor::Red;
+    AttackHitbox->OnComponentBeginOverlap.AddDynamic(
+        this, &ABaseCharacter::OnAttackHitboxOverlap);
     AttackHitbox->SetCollisionObjectType(ECC_Pawn);
     AttackHitbox->SetCollisionResponseToAllChannels(ECR_Ignore);
+    AttackHitbox->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
+    AttackHitbox->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+    AttackHitbox->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Overlap);
     AttackHitbox->SetCollisionResponseToChannel(
         ECC_Pawn,
         ECR_Overlap
@@ -93,6 +108,8 @@ ABaseCharacter::ABaseCharacter()
 void ABaseCharacter::BeginPlay()
 {
     Super::BeginPlay();
+    MaxHealth = FMath::Max(1.f, MaxHealth);
+    Health = MaxHealth;
 
     // 기본 Skeletal Mesh
     if (!GetMesh()->GetSkeletalMeshAsset())
@@ -170,10 +187,11 @@ void ABaseCharacter::MoveCharacter(const FVector2D& Input)
 
 void ABaseCharacter::Dash()
 {
-    if (!bCanDash || !Controller)
+    if (!bCanDash || !Controller || DashDistance <= 0.f || DashDuration <= 0.f)
         return;
 
-    if (!GetCharacterMovement()->IsMovingOnGround())
+    if (!GetCharacterMovement()->IsMovingOnGround()
+        || GetCharacterMovement()->GetRootMotionSource(TEXT("Dash")))
         return;
 
     const FRotator YawRotation(
@@ -195,11 +213,24 @@ void ABaseCharacter::Dash()
     if (Direction.IsNearlyZero())
         return;
 
-    LaunchCharacter(
-        Direction * DashSpeed,
-        true,
-        false
-    );
+    const float SafeDuration = FMath::Max(DashDuration, 0.01f);
+    const float DashSpeed = DashDistance / SafeDuration;
+
+    TSharedPtr<FRootMotionSource_ConstantForce> DashSource =
+        MakeShared<FRootMotionSource_ConstantForce>();
+    DashSource->InstanceName = TEXT("Dash");
+    DashSource->Priority = 1000;
+    DashSource->AccumulateMode = ERootMotionAccumulateMode::Override;
+    DashSource->Duration = SafeDuration;
+    DashSource->Force = Direction * DashSpeed;
+    DashSource->bInLocalSpace = false;
+    DashSource->Settings.SetFlag(ERootMotionSourceSettingsFlags::IgnoreZAccumulate);
+    DashSource->Settings.UnSetFlag(ERootMotionSourceSettingsFlags::DisablePartialEndTick);
+    // Preserve momentum; CharacterMovement handles braking after the dash.
+    DashSource->FinishVelocityParams.Mode =
+        ERootMotionFinishVelocityMode::MaintainLastRootMotionVelocity;
+
+    GetCharacterMovement()->ApplyRootMotionSource(DashSource);
 
     bCanDash = false;
 
@@ -223,11 +254,14 @@ void ABaseCharacter::ResetDash()
 
 void ABaseCharacter::Attack()
 {
-    if (!AnimationComponent || !bCanAttack || bIsAttack)
+    if (Health <= 0.f || !AnimationComponent || !bCanAttack || bIsAttack)
         return;
 
+    HitActorsThisAttack.Reset();
     bIsAttack = true;
     bCanAttack = false;
+
+    // Hitbox activation is controlled by animation notifies.
 
     GetWorldTimerManager().SetTimer(
         AttackCooldownHandle,
@@ -255,9 +289,41 @@ void ABaseCharacter::EnableAttackHitbox()
     if (!IsValid(AttackHitbox))
         return;
 
+    AttackHitbox->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Overlap);
     AttackHitbox->SetCollisionEnabled(
         ECollisionEnabled::QueryOnly
     );
+    AttackHitbox->SetHiddenInGame(false);
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, TEXT("Attack Hitbox: ON"));
+    }
+
+    // Explicit query also detects geometry that does not generate overlap events.
+    FCollisionObjectQueryParams ObjectTypes;
+    ObjectTypes.AddObjectTypesToQuery(ECC_Pawn);
+    ObjectTypes.AddObjectTypesToQuery(ECC_WorldStatic);
+    ObjectTypes.AddObjectTypesToQuery(ECC_WorldDynamic);
+    ObjectTypes.AddObjectTypesToQuery(ECC_PhysicsBody);
+    FCollisionQueryParams QueryParams;
+    QueryParams.AddIgnoredActor(this);
+    TArray<FOverlapResult> Results;
+    GetWorld()->OverlapMultiByObjectType(
+        Results, AttackHitbox->GetComponentLocation(),
+        AttackHitbox->GetComponentQuat(), ObjectTypes,
+        FCollisionShape::MakeBox(AttackHitbox->GetScaledBoxExtent()), QueryParams);
+
+    TSet<AActor*> ReportedActors;
+    for (const FOverlapResult& Result : Results)
+    {
+        AActor* HitActor = Result.GetActor();
+        if (IsValid(HitActor) && !ReportedActors.Contains(HitActor))
+        {
+            ReportedActors.Add(HitActor);
+            OnAttackHitboxOverlap(AttackHitbox, HitActor,
+                Result.GetComponent(), INDEX_NONE, false, FHitResult());
+        }
+    }
 }
 
 void ABaseCharacter::DisableAttackHitbox()
@@ -268,4 +334,111 @@ void ABaseCharacter::DisableAttackHitbox()
     AttackHitbox->SetCollisionEnabled(
         ECollisionEnabled::NoCollision
     );
+    AttackHitbox->SetHiddenInGame(true);
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, TEXT("Attack Hitbox: OFF"));
+    }
+}
+
+void ABaseCharacter::OnAttackHitboxOverlap(
+    UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+    bool bFromSweep, const FHitResult& SweepResult)
+{
+    if (!bIsAttack || !IsValid(AttackHitbox)
+        || AttackHitbox->GetCollisionEnabled() == ECollisionEnabled::NoCollision
+        || !IsValid(OtherActor) || OtherActor == this)
+        return;
+
+    if (HitActorsThisAttack.Contains(OtherActor))
+        return;
+
+    // A constrained target may overlap through its static base first.
+    // Select the nearest simulated component so that the dummy receives the impulse.
+    UPrimitiveComponent* PhysicsComponent = OtherComp;
+    FName PhysicsBone = bFromSweep ? SweepResult.BoneName : NAME_None;
+    if (!IsValid(PhysicsComponent) || !PhysicsComponent->IsSimulatingPhysics(PhysicsBone))
+    {
+        PhysicsComponent = nullptr;
+        PhysicsBone = NAME_None;
+        TInlineComponentArray<UPrimitiveComponent*> Components(OtherActor);
+        double NearestDistance = TNumericLimits<double>::Max();
+        for (UPrimitiveComponent* Component : Components)
+        {
+            if (!Component->IsSimulatingPhysics())
+                continue;
+            const double Distance = FVector::DistSquared(
+                Component->Bounds.Origin, AttackHitbox->GetComponentLocation());
+            if (Distance < NearestDistance)
+            {
+                NearestDistance = Distance;
+                PhysicsComponent = Component;
+            }
+        }
+    }
+
+    ACharacter* HitCharacter = Cast<ACharacter>(OtherActor);
+    const bool bDamageable = OtherActor->CanBeDamaged()
+        && (Cast<APawn>(OtherActor) || OtherActor->ActorHasTag(TEXT("Damageable")));
+    if (!PhysicsComponent && !HitCharacter && !bDamageable)
+        return;
+
+    HitActorsThisAttack.Add(OtherActor);
+    FVector Direction = ((PhysicsComponent ? PhysicsComponent->Bounds.Origin
+        : OtherActor->GetActorLocation()) - GetActorLocation()).GetSafeNormal2D();
+    if (Direction.IsNearlyZero())
+        Direction = GetActorForwardVector().GetSafeNormal2D();
+
+    if (PhysicsComponent && AttackImpulse > 0.f)
+    {
+        FVector ImpactPoint = AttackHitbox->GetComponentLocation();
+        if (bFromSweep && !SweepResult.ImpactPoint.IsNearlyZero())
+            ImpactPoint = SweepResult.ImpactPoint;
+        else
+        {
+            FVector ClosestPoint;
+            if (PhysicsComponent->GetClosestPointOnCollision(ImpactPoint, ClosestPoint, PhysicsBone) >= 0.f)
+                ImpactPoint = ClosestPoint;
+        }
+        PhysicsComponent->AddImpulseAtLocation(
+            (Direction + FVector::UpVector * 0.15f).GetSafeNormal() * AttackImpulse,
+            ImpactPoint, PhysicsBone);
+    }
+    else if (HitCharacter && AttackKnockbackSpeed > 0.f)
+    {
+        HitCharacter->LaunchCharacter(Direction * AttackKnockbackSpeed, false, false);
+    }
+
+    if (!bDamageable)
+        return;
+    const float AppliedDamage = UGameplayStatics::ApplyDamage(
+        OtherActor, FMath::Max(0.f, AttackDamage), GetController(), this, UDamageType::StaticClass());
+    if (AppliedDamage > 0.f)
+    {
+        if (auto* PC = Cast<ABasePlayerController>(GetController()))
+        {
+            const FVector Position = bFromSweep ? FVector(SweepResult.ImpactPoint)
+                : OtherActor->GetActorLocation() + FVector(0.f, 0.f, 100.f);
+            PC->ShowDamageNumber(AppliedDamage, Position);
+        }
+    }
+}
+
+float ABaseCharacter::TakeDamage(float DamageAmount, const FDamageEvent& DamageEvent,
+    AController* EventInstigator, AActor* DamageCauser)
+{
+    if (Health <= 0.f || !FMath::IsFinite(DamageAmount) || DamageAmount <= 0.f)
+        return 0.f;
+    const float AcceptedDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+    const float AppliedDamage = FMath::Clamp(AcceptedDamage, 0.f, Health);
+    Health -= AppliedDamage;
+    if (auto* PC = Cast<ABasePlayerController>(GetController()))
+        PC->RefreshHealthUI();
+    if (Health <= 0.f)
+    {
+        DisableAttackHitbox();
+        GetCharacterMovement()->DisableMovement();
+    }
+    return AppliedDamage;
 }
