@@ -1,0 +1,32 @@
+# Unreal generated files (including plugins)
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+
+# IDE generated files
+.vs/
+.idea/
+.vscode/
+*.sln
+*.slnx
+*.suo
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.opendb
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.code-workspace
+
+# Local tools and credentials
+.mcp.json
+.env
+.env.*
+!.env.example
+
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
