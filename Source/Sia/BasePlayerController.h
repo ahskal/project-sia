@@ -27,12 +27,15 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Inventory|UI")
     void SetInventoryItems(const TArray<FInventoryItemView>& Items);
+    // 개발 중 콘솔에서 GiveItem Apple 12로 데이터→인벤토리→WBP 연결을 확인한다.
+    UFUNCTION(Exec) void GiveItem(FName ItemId, int32 Quantity = 1);
 
     UFUNCTION(BlueprintPure, Category = "Inventory|UI")
     UInventoryWidget* GetInventoryWidget() const
     {
         return InventoryUI;
     }
+    UCombatHUDWidget* GetCombatHUDWidget() const { return CombatHUD; }
 
 protected:
     virtual void BeginPlay() override;
@@ -52,6 +55,10 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, Category = "Input")
     TObjectPtr<UInputMappingContext> MouseLookMappingContext;
+    UPROPERTY(Transient)
+    TObjectPtr<UInputMappingContext> QuickSlotMappingContext;
+    UPROPERTY(Transient)
+    TArray<TObjectPtr<UInputAction>> QuickSlotActions;
 
     UPROPERTY(EditDefaultsOnly, Category = "Input")
     TObjectPtr<UInputAction> MoveAction;
@@ -73,6 +80,8 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, Category = "Input")
     TObjectPtr<UInputAction> InventoryAction;
+    UPROPERTY(EditDefaultsOnly, Category = "Input")
+    TObjectPtr<UInputAction> InteractAction;
 
 private:
     UPROPERTY(Transient)
@@ -95,4 +104,10 @@ private:
     void StopJump();
     void Dash();
     void Attack();
+    void Interact();
+    void UseQuickSlot1();
+    void UseQuickSlot2();
+    void UseQuickSlot3();
+    void UseQuickSlot4();
+    void UseQuickSlot(int32 Index);
 };

@@ -4,6 +4,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/DamageType.h"
 #include "CharacterAnimationComponent.h"
+#include "Components/InventoryComponent.h"
 
 #include "Camera/CameraComponent.h"
 #include "Animation/AnimInstance.h"
@@ -20,6 +21,7 @@
 ABaseCharacter::ABaseCharacter()
 {
     PrimaryActorTick.bCanEverTick = false;
+    InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
 
     // Character Movement
     bUseControllerRotationYaw = false;
@@ -103,6 +105,15 @@ ABaseCharacter::ABaseCharacter()
         ECR_Overlap
     );
 
+}
+
+float ABaseCharacter::RestoreHealth(float Amount)
+{
+    if (!FMath::IsFinite(Amount) || Amount <= 0.f || Health <= 0.f) return 0.f;
+    const float Previous = Health;
+    Health = FMath::Clamp(Health + Amount, 0.f, MaxHealth);
+    if (auto* PC = Cast<ABasePlayerController>(GetController())) PC->RefreshHealthUI();
+    return Health - Previous;
 }
 
 void ABaseCharacter::BeginPlay()

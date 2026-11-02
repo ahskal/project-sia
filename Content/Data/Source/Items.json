@@ -1,0 +1,452 @@
+[
+  {
+    "Name": "Apple",
+    "ItemType": "Consumable",
+    "ItemQuality": "Common",
+    "ItemStatistics": {
+      "ArmorRating": 0,
+      "DamageValue": 0,
+      "RestorationAmount": 30,
+      "SellValue": 5
+    },
+    "TextData": {
+      "Description": "신선한 사과입니다. 체력을 30 회복합니다.",
+      "UsageText": "우클릭: 사용",
+      "DisplayName": "사과"
+    },
+    "NumericData": {
+      "Weight": 0.2,
+      "MaxStackSize": 20
+    },
+    "AssetData": {
+      "Icon": "/Game/FoodArcadeIcon/T_Food_287.T_Food_287",
+      "Mesh": "/Game/OWD_Fruit_Vegetable/Meshes/SM_Apple.SM_Apple"
+    },
+    "EquipmentSlot": "None"
+  },
+  {
+    "Name": "Wood",
+    "ItemType": "Material",
+    "ItemQuality": "Common",
+    "ItemStatistics": {
+      "ArmorRating": 0,
+      "DamageValue": 0,
+      "RestorationAmount": 0,
+      "SellValue": 2
+    },
+    "TextData": {
+      "Description": "제작에 사용하는 목재입니다.",
+      "UsageText": "제작 재료",
+      "DisplayName": "나무"
+    },
+    "NumericData": {
+      "Weight": 0.5,
+      "MaxStackSize": 50
+    },
+    "AssetData": {
+      "Icon": "/Game/50_Stylized_Icons/Textures/T_Firewood.T_Firewood",
+      "Mesh": "/Game/Mega_Survival_Tools/Models/SM_FIREWOOD.SM_FIREWOOD"
+    },
+    "EquipmentSlot": "None"
+  },
+  {
+    "Name": "Stone",
+    "ItemType": "Material",
+    "ItemQuality": "Common",
+    "ItemStatistics": {
+      "ArmorRating": 0,
+      "DamageValue": 0,
+      "RestorationAmount": 0,
+      "SellValue": 1
+    },
+    "TextData": {
+      "Description": "건축과 제작에 사용하는 돌입니다.",
+      "UsageText": "제작 재료",
+      "DisplayName": "돌"
+    },
+    "NumericData": {
+      "Weight": 1,
+      "MaxStackSize": 50
+    },
+    "AssetData": {
+      "Icon": "/Game/50_Stylized_Icons/Textures/T_Whetstone.T_Whetstone",
+      "Mesh": ""
+    },
+    "EquipmentSlot": "None"
+  },
+  {
+    "Name": "Crystal",
+    "ItemType": "Material",
+    "ItemQuality": "Rare",
+    "ItemStatistics": {
+      "ArmorRating": 0,
+      "DamageValue": 0,
+      "RestorationAmount": 0,
+      "SellValue": 25
+    },
+    "TextData": {
+      "Description": "마력을 품은 희귀한 결정입니다.",
+      "UsageText": "제작 재료",
+      "DisplayName": "수정"
+    },
+    "NumericData": {
+      "Weight": 0.3,
+      "MaxStackSize": 20
+    },
+    "AssetData": {
+      "Icon": "/Game/50_Stylized_Icons/Textures/T_emerald_gem_01.T_emerald_gem_01",
+      "Mesh": "/Game/AncientTreasures/Meshes/SM_Gems_01a.SM_Gems_01a"
+    },
+    "EquipmentSlot": "None"
+  },
+  {
+    "Name": "Herb",
+    "ItemType": "Consumable",
+    "ItemQuality": "Common",
+    "ItemStatistics": {
+      "ArmorRating": 0,
+      "DamageValue": 0,
+      "RestorationAmount": 10,
+      "SellValue": 3
+    },
+    "TextData": {
+      "Description": "체력을 10 회복하는 약초입니다.",
+      "UsageText": "우클릭: 사용",
+      "DisplayName": "약초"
+    },
+    "NumericData": {
+      "Weight": 0.1,
+      "MaxStackSize": 30
+    },
+    "AssetData": {
+      "Icon": "/Game/50_Stylized_Icons/Textures/T_herbs_Basil.T_herbs_Basil",
+      "Mesh": ""
+    },
+    "EquipmentSlot": "None"
+  },
+  {
+    "Name": "Mushroom",
+    "ItemType": "Material",
+    "ItemQuality": "Common",
+    "ItemStatistics": {
+      "ArmorRating": 0,
+      "DamageValue": 0,
+      "RestorationAmount": 0,
+      "SellValue": 3
+    },
+    "TextData": {
+      "Description": "요리에 사용하는 버섯입니다.",
+      "UsageText": "제작 재료",
+      "DisplayName": "버섯"
+    },
+    "NumericData": {
+      "Weight": 0.1,
+      "MaxStackSize": 20
+    },
+    "AssetData": {
+      "Icon": "/Game/50_Stylized_Icons/Textures/T_Oyster_mushroom.T_Oyster_mushroom",
+      "Mesh": ""
+    },
+    "EquipmentSlot": "None"
+  },
+  {
+    "Name": "Meat",
+    "ItemType": "Consumable",
+    "ItemQuality": "Common",
+    "ItemStatistics": {
+      "ArmorRating": 0,
+      "DamageValue": 0,
+      "RestorationAmount": 20,
+      "SellValue": 8
+    },
+    "TextData": {
+      "Description": "섭취하면 체력을 20 회복합니다.",
+      "UsageText": "우클릭: 사용",
+      "DisplayName": "고기"
+    },
+    "NumericData": {
+      "Weight": 0.4,
+      "MaxStackSize": 20
+    },
+    "AssetData": {
+      "Icon": "/Game/FoodArcadeIcon/T_Food_1.T_Food_1",
+      "Mesh": ""
+    },
+    "EquipmentSlot": "None"
+  },
+  {
+    "Name": "Rope",
+    "ItemType": "Material",
+    "ItemQuality": "Common",
+    "ItemStatistics": {
+      "ArmorRating": 0,
+      "DamageValue": 0,
+      "RestorationAmount": 0,
+      "SellValue": 10
+    },
+    "TextData": {
+      "Description": "제작에 사용하는 튼튼한 밧줄입니다.",
+      "UsageText": "제작 재료",
+      "DisplayName": "밧줄"
+    },
+    "NumericData": {
+      "Weight": 0.5,
+      "MaxStackSize": 20
+    },
+    "AssetData": {
+      "Icon": "",
+      "Mesh": "/Game/Mega_Survival_Tools/Models/SM_Rope.SM_Rope"
+    },
+    "EquipmentSlot": "None"
+  },
+  {
+    "Name": "HealthPotion",
+    "ItemType": "Consumable",
+    "ItemQuality": "Common",
+    "ItemStatistics": {
+      "ArmorRating": 0,
+      "DamageValue": 0,
+      "RestorationAmount": 50,
+      "SellValue": 30
+    },
+    "TextData": {
+      "Description": "체력을 50 회복하는 물약입니다.",
+      "UsageText": "우클릭: 사용",
+      "DisplayName": "체력 물약"
+    },
+    "NumericData": {
+      "Weight": 0.3,
+      "MaxStackSize": 10
+    },
+    "AssetData": {
+      "Icon": "/Game/Items/Icons/T_HealthPotion.T_HealthPotion",
+      "Mesh": ""
+    },
+    "EquipmentSlot": "None"
+  },
+  {
+    "Name": "Bucket",
+    "ItemType": "Material",
+    "ItemQuality": "Common",
+    "ItemStatistics": {
+      "ArmorRating": 0,
+      "DamageValue": 0,
+      "RestorationAmount": 0,
+      "SellValue": 15
+    },
+    "TextData": {
+      "Description": "물을 담는 도구입니다. 스택할 수 없습니다.",
+      "UsageText": "제작 재료",
+      "DisplayName": "양동이"
+    },
+    "NumericData": {
+      "Weight": 2,
+      "MaxStackSize": 1
+    },
+    "AssetData": {
+      "Icon": "/Game/Items/Icons/T_Bucket.T_Bucket",
+      "Mesh": "/Game/Mega_Survival_Tools/Models/SM_Bucket.SM_Bucket"
+    },
+    "EquipmentSlot": "None"
+  },
+  {
+    "Name": "ArmorHead",
+    "ItemType": "Armor",
+    "ItemQuality": "Common",
+    "EquipmentSlot": "Head",
+    "ItemStatistics": {
+      "ArmorRating": 8,
+      "DamageValue": 0,
+      "RestorationAmount": 0,
+      "SellValue": 35
+    },
+    "TextData": {
+      "DisplayName": "수호자의 투구",
+      "Description": "머리 방어구입니다.",
+      "UsageText": "더블클릭: 장착"
+    },
+    "NumericData": {
+      "Weight": 2.5,
+      "MaxStackSize": 1
+    },
+    "AssetData": {
+      "Icon": "/Game/50_Stylized_Icons/Textures/T_Falmer_helmet_with_horns_25.T_Falmer_helmet_with_horns_25",
+      "Mesh": "/Game/AncientTreasures/Meshes/SM_Helmet_01a.SM_Helmet_01a"
+    }
+  },
+  {
+    "Name": "ArmorChest",
+    "ItemType": "Armor",
+    "ItemQuality": "Common",
+    "EquipmentSlot": "Chest",
+    "ItemStatistics": {
+      "ArmorRating": 25,
+      "DamageValue": 0,
+      "RestorationAmount": 0,
+      "SellValue": 90
+    },
+    "TextData": {
+      "DisplayName": "수호자의 갑옷",
+      "Description": "몸통 방어구입니다.",
+      "UsageText": "더블클릭: 장착"
+    },
+    "NumericData": {
+      "Weight": 6.0,
+      "MaxStackSize": 1
+    },
+    "AssetData": {
+      "Icon": "/Game/50_Stylized_Icons/Textures/T_Falmer_cuirass_105.T_Falmer_cuirass_105",
+      "Mesh": ""
+    }
+  },
+  {
+    "Name": "ArmorHands",
+    "ItemType": "Armor",
+    "ItemQuality": "Common",
+    "EquipmentSlot": "Hands",
+    "ItemStatistics": {
+      "ArmorRating": 5,
+      "DamageValue": 0,
+      "RestorationAmount": 0,
+      "SellValue": 25
+    },
+    "TextData": {
+      "DisplayName": "수호자의 장갑",
+      "Description": "손 방어구입니다.",
+      "UsageText": "더블클릭: 장착"
+    },
+    "NumericData": {
+      "Weight": 1.0,
+      "MaxStackSize": 1
+    },
+    "AssetData": {
+      "Icon": "/Game/50_Stylized_Icons/Textures/T_Mage_Gloves.T_Mage_Gloves",
+      "Mesh": ""
+    }
+  },
+  {
+    "Name": "ArmorLegs",
+    "ItemType": "Armor",
+    "ItemQuality": "Common",
+    "EquipmentSlot": "Legs",
+    "ItemStatistics": {
+      "ArmorRating": 12,
+      "DamageValue": 0,
+      "RestorationAmount": 0,
+      "SellValue": 55
+    },
+    "TextData": {
+      "DisplayName": "수호자의 바지",
+      "Description": "다리 방어구입니다.",
+      "UsageText": "더블클릭: 장착"
+    },
+    "NumericData": {
+      "Weight": 3.0,
+      "MaxStackSize": 1
+    },
+    "AssetData": {
+      "Icon": "/Game/50_Stylized_Icons/Textures/T_Falmer_Armored_cuisses_51.T_Falmer_Armored_cuisses_51",
+      "Mesh": ""
+    }
+  },
+  {
+    "Name": "ArmorFeet",
+    "ItemType": "Armor",
+    "ItemQuality": "Common",
+    "EquipmentSlot": "Feet",
+    "ItemStatistics": {
+      "ArmorRating": 6,
+      "DamageValue": 0,
+      "RestorationAmount": 0,
+      "SellValue": 30
+    },
+    "TextData": {
+      "DisplayName": "수호자의 장화",
+      "Description": "발 방어구입니다.",
+      "UsageText": "더블클릭: 장착"
+    },
+    "NumericData": {
+      "Weight": 1.5,
+      "MaxStackSize": 1
+    },
+    "AssetData": {
+      "Icon": "/Game/50_Stylized_Icons/Textures/T_Falmer_armored_boots_17.T_Falmer_armored_boots_17",
+      "Mesh": ""
+    }
+  },
+  {
+    "Name": "ArmorNeck",
+    "ItemType": "Armor",
+    "ItemQuality": "Common",
+    "EquipmentSlot": "Neck",
+    "ItemStatistics": {
+      "ArmorRating": 4,
+      "DamageValue": 0,
+      "RestorationAmount": 0,
+      "SellValue": 40
+    },
+    "TextData": {
+      "DisplayName": "수호자의 목걸이",
+      "Description": "목 장신구입니다.",
+      "UsageText": "더블클릭: 장착"
+    },
+    "NumericData": {
+      "Weight": 0.3,
+      "MaxStackSize": 1
+    },
+    "AssetData": {
+      "Icon": "/Game/50_Stylized_Icons/Textures/T_magic_fantasy_Amulet_03.T_magic_fantasy_Amulet_03",
+      "Mesh": "/Game/AncientTreasures/Meshes/SM_Necklace_01a.SM_Necklace_01a"
+    }
+  },
+  {
+    "Name": "ArmorAccessory",
+    "ItemType": "Armor",
+    "ItemQuality": "Common",
+    "EquipmentSlot": "Accessory",
+    "ItemStatistics": {
+      "ArmorRating": 3,
+      "DamageValue": 0,
+      "RestorationAmount": 0,
+      "SellValue": 35
+    },
+    "TextData": {
+      "DisplayName": "수호자의 장신구",
+      "Description": "장신구 슬롯 방어구입니다.",
+      "UsageText": "더블클릭: 장착"
+    },
+    "NumericData": {
+      "Weight": 0.2,
+      "MaxStackSize": 1
+    },
+    "AssetData": {
+      "Icon": "/Game/50_Stylized_Icons/Textures/T_Dwarven_Earrings_14.T_Dwarven_Earrings_14",
+      "Mesh": ""
+    }
+  },
+  {
+    "Name": "ArmorRing",
+    "ItemType": "Armor",
+    "ItemQuality": "Common",
+    "EquipmentSlot": "Ring",
+    "ItemStatistics": {
+      "ArmorRating": 2,
+      "DamageValue": 0,
+      "RestorationAmount": 0,
+      "SellValue": 25
+    },
+    "TextData": {
+      "DisplayName": "수호자의 반지",
+      "Description": "반지 슬롯 방어구입니다.",
+      "UsageText": "더블클릭: 장착"
+    },
+    "NumericData": {
+      "Weight": 0.1,
+      "MaxStackSize": 1
+    },
+    "AssetData": {
+      "Icon": "/Game/50_Stylized_Icons/Textures/T_magic_fantasy_ring_39.T_magic_fantasy_ring_39",
+      "Mesh": "/Game/AncientTreasures/Meshes/SM_Ring_01a.SM_Ring_01a"
+    }
+  }
+]

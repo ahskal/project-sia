@@ -10,6 +10,7 @@ class UCameraComponent;
 class USpringArmComponent;
 class UCharacterAnimationComponent;
 class UBoxComponent;
+class UInventoryComponent;
 
 UCLASS()
 class SIA_API ABaseCharacter : public ACharacter
@@ -30,6 +31,12 @@ public:
     float GetHealth() const { return Health; }
     UFUNCTION(BlueprintPure, Category = "Combat")
     float GetMaxHealth() const { return MaxHealth; }
+    UFUNCTION(BlueprintPure, Category = "Combat")
+    float GetAttackDamage() const { return AttackDamage; }
+    UFUNCTION(BlueprintPure, Category = "Inventory")
+    UInventoryComponent* GetInventory() const { return InventoryComponent; }
+    UFUNCTION(BlueprintCallable, Category = "Combat")
+    float RestoreHealth(float Amount);
 
 
     // 공격 판정
@@ -41,6 +48,8 @@ public:
 
 protected:
     virtual void BeginPlay() override;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
+    TObjectPtr<UInventoryComponent> InventoryComponent;
 
     // Camera
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")

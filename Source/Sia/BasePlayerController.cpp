@@ -2,6 +2,9 @@
 #include "BasePlayerController.h"
 #include "CombatHUDWidget.h"
 #include "BaseCharacter.h"
+#include "Components/InventoryComponent.h"
+#include "World/ItemPickup.h"
+#include "EngineUtils.h"
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -9,6 +12,7 @@
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "UObject/ConstructorHelpers.h"
+#include "InputCoreTypes.h"
 
 ABasePlayerController::ABasePlayerController()
 {
@@ -53,6 +57,21 @@ ABasePlayerController::ABasePlayerController()
     DefaultMappingContext = DefaultContextAsset.Object;
     MouseLookMappingContext = MouseContextAsset.Object;
 
+    QuickSlotMappingContext = NewObject<UInputMappingContext>(this, TEXT("QuickSlotMappingContext"));
+    QuickSlotActions.SetNum(4);
+    const FKey QuickSlotKeys[] = { EKeys::One, EKeys::Two, EKeys::Three, EKeys::Four };
+    for (int32 Index = 0; Index < 4; ++Index)
+    {
+        const FString ActionPath = FString::Printf(TEXT("/Game/Input/Actions/IA_Quick%d.IA_Quick%d"), Index + 1, Index + 1);
+        ConstructorHelpers::FObjectFinder<UInputAction> ActionAsset(*ActionPath);
+        UInputAction* Action = ActionAsset.Object;
+        QuickSlotActions[Index] = Action;
+        if (!Action) continue;
+        const bool bMapped = DefaultMappingContext && DefaultMappingContext->GetMappings().ContainsByPredicate(
+            [Action](const FEnhancedActionKeyMapping& Mapping) { return Mapping.Action == Action; });
+        if (!bMapped) QuickSlotMappingContext->MapKey(Action, QuickSlotKeys[Index]);
+    }
+
     MoveAction = MoveAsset.Object;
     LookAction = LookAsset.Object;
     MouseLookAction = MouseLookAsset.Object;
@@ -60,6 +79,9 @@ ABasePlayerController::ABasePlayerController()
     DashAction = DashAsset.Object;
     AttackAction = AttackAsset.Object;
     InventoryAction = InventoryAsset.Object;
+    static ConstructorHelpers::FObjectFinder<UInputAction> InteractAsset(
+        TEXT("/Game/Input/Actions/IA_Interaction.IA_Interaction"));
+    InteractAction = InteractAsset.Object;
 }
 
 void ABasePlayerController::BeginPlay()
@@ -87,6 +109,8 @@ void ABasePlayerController::BeginPlay()
     {
         Subsystem->AddMappingContext(MouseLookMappingContext, 1);
     }
+    if (QuickSlotMappingContext)
+        Subsystem->AddMappingContext(QuickSlotMappingContext, 2);
 }
 
 void ABasePlayerController::SetupInputComponent()
@@ -101,6 +125,17 @@ void ABasePlayerController::SetupInputComponent()
         UE_LOG(LogTemp, Error,
             TEXT("Enhanced Input Component Missing"));
         return;
+    }
+
+    if (QuickSlotActions.Num() == 4)
+    {
+        void (ABasePlayerController::*Handlers[])() = {
+            &ABasePlayerController::UseQuickSlot1, &ABasePlayerController::UseQuickSlot2,
+            &ABasePlayerController::UseQuickSlot3, &ABasePlayerController::UseQuickSlot4
+        };
+        for (int32 Index = 0; Index < 4; ++Index)
+            if (QuickSlotActions[Index])
+                EnhancedInput->BindAction(QuickSlotActions[Index], ETriggerEvent::Started, this, Handlers[Index]);
     }
 
     if (MoveAction)
@@ -177,6 +212,8 @@ void ABasePlayerController::SetupInputComponent()
             this,
             &ABasePlayerController::ToggleInventory);
     }
+    if (InteractAction)
+        EnhancedInput->BindAction(InteractAction, ETriggerEvent::Started, this, &ABasePlayerController::Interact);
 }
 
 void ABasePlayerController::Move(const FInputActionValue& Value)
@@ -277,11 +314,33 @@ void ABasePlayerController::OnPossess(APawn* InPawn)
     Super::OnPossess(InPawn);
 
     CreateCombatHUD();
+    const auto* PlayerCharacter = Cast<ABaseCharacter>(InPawn);
+    UInventoryComponent* Inventory = PlayerCharacter ? PlayerCharacter->GetInventory() : nullptr;
+    if (CombatHUD)
+        CombatHUD->BindInventory(Inventory);
     RefreshHealthUI();
+    if (InventoryUI)
+        InventoryUI->BindInventory(Inventory);
+}
+
+void ABasePlayerController::UseQuickSlot1() { UseQuickSlot(0); }
+void ABasePlayerController::UseQuickSlot2() { UseQuickSlot(1); }
+void ABasePlayerController::UseQuickSlot3() { UseQuickSlot(2); }
+void ABasePlayerController::UseQuickSlot4() { UseQuickSlot(3); }
+
+void ABasePlayerController::UseQuickSlot(int32 Index)
+{
+    auto* PlayerCharacter = Cast<ABaseCharacter>(GetPawn());
+    if (!PlayerCharacter || !PlayerCharacter->GetInventory()) return;
+    FText Message;
+    PlayerCharacter->GetInventory()->UseQuickSlot(Index, Message);
+    if (InventoryUI) InventoryUI->ShowInventoryMessage(Message);
+    if (!Message.IsEmpty()) ClientMessage(Message.ToString());
 }
 
 void ABasePlayerController::OnUnPossess()
 {
+    if (InventoryUI) InventoryUI->BindInventory(nullptr);
     Super::OnUnPossess();
     RefreshHealthUI();
 }
@@ -316,7 +375,7 @@ void ABasePlayerController::SetInventoryItems(
 
     if (IsValid(InventoryUI))
     {
-        InventoryUI->SetItems(InventoryView);
+        if (!InventoryUI->GetBoundInventory()) InventoryUI->SetItems(InventoryView);
     }
 }
 
@@ -364,7 +423,9 @@ void ABasePlayerController::ToggleInventory()
             return;
         }
 
-        InventoryUI->SetItems(InventoryView);
+        if (auto* PlayerCharacter = Cast<ABaseCharacter>(GetPawn()))
+            InventoryUI->BindInventory(PlayerCharacter->GetInventory());
+        else InventoryUI->SetItems(InventoryView);
 
         UE_LOG(LogTemp, Warning,
             TEXT("Inventory Widget Created: %s"),
@@ -403,6 +464,7 @@ void ABasePlayerController::ToggleInventory()
     }
     else
     {
+        if (InventoryUI) InventoryUI->CloseItemContextMenu();
         // UI 숨김
         InventoryUI->SetVisibility(
             ESlateVisibility::Collapsed
@@ -433,4 +495,32 @@ void ABasePlayerController::EndPlay(
     CombatHUD = nullptr;
 
     Super::EndPlay(EndPlayReason);
+}
+
+void ABasePlayerController::Interact()
+{
+    if (bInventoryOpen) return;
+    auto* PlayerCharacter = Cast<ABaseCharacter>(GetPawn());
+    if (!PlayerCharacter || !GetWorld()) return;
+    AItemPickup* Nearest = nullptr;
+    double BestDistance = TNumericLimits<double>::Max();
+    for (TActorIterator<AItemPickup> It(GetWorld()); It; ++It)
+    {
+        if (It->IsActorBeingDestroyed()) continue;
+        const double Distance = FVector::DistSquared(It->GetActorLocation(), PlayerCharacter->GetActorLocation());
+        if (Distance <= FMath::Square(It->GetPickupRange()) && Distance < BestDistance)
+        {
+            Nearest = *It;
+            BestDistance = Distance;
+        }
+    }
+    if (Nearest) Nearest->TryPickup(PlayerCharacter);
+}
+
+void ABasePlayerController::GiveItem(FName ItemId, int32 Quantity)
+{
+    auto* PlayerCharacter = Cast<ABaseCharacter>(GetPawn());
+    if (!PlayerCharacter || !PlayerCharacter->GetInventory()) return;
+    const FItemAddResult Result = PlayerCharacter->GetInventory()->TryAddItem(ItemId, Quantity);
+    UE_LOG(LogTemp, Display, TEXT("GiveItem: %s | %d / %d"), *Result.Message.ToString(), Result.AmountAdded, Quantity);
 }

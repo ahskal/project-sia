@@ -5,16 +5,102 @@
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/ProgressBar.h"
+#include "Components/Image.h"
 #include "Components/TextBlock.h"
-#include "Components/VerticalBox.h"
-#include "Components/VerticalBoxSlot.h"
+#include "Components/InventoryComponent.h"
+#include "BaseCharacter.h"
+#include "InventoryWidget.h"
+#include "Items/ItemBase.h"
 #include "Styling/CoreStyle.h"
 
 void UCombatHUDWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
-    SetVisibility(ESlateVisibility::HitTestInvisible);
+    SetVisibility(ESlateVisibility::SelfHitTestInvisible);
     SetHealth(100.f, 100.f);
+}
+
+void UCombatHUDWidget::NativeConstruct()
+{
+    Super::NativeConstruct();
+    if (ABaseCharacter* Character = Cast<ABaseCharacter>(GetOwningPlayerPawn()))
+        BoundInventory = Character->GetInventory();
+    if (BoundInventory) BoundInventory->OnInventoryChanged.AddUniqueDynamic(this, &UCombatHUDWidget::RefreshQuickSlots);
+    RefreshQuickSlots();
+}
+
+void UCombatHUDWidget::NativeDestruct()
+{
+    if (BoundInventory) BoundInventory->OnInventoryChanged.RemoveDynamic(this, &UCombatHUDWidget::RefreshQuickSlots);
+    BoundInventory = nullptr;
+    Super::NativeDestruct();
+}
+
+void UCombatHUDWidget::BindInventory(UInventoryComponent* Inventory)
+{
+    if (BoundInventory) BoundInventory->OnInventoryChanged.RemoveDynamic(this, &UCombatHUDWidget::RefreshQuickSlots);
+    BoundInventory = Inventory;
+    if (BoundInventory) BoundInventory->OnInventoryChanged.AddUniqueDynamic(this, &UCombatHUDWidget::RefreshQuickSlots);
+    RefreshQuickSlots();
+}
+
+void UCombatHUDWidget::RefreshQuickSlots()
+{
+    UTextBlock* Labels[] = { WBP_QuickSlotLabel_1, WBP_QuickSlotLabel_2,
+        WBP_QuickSlotLabel_3, WBP_QuickSlotLabel_4 };
+    UImage* Icons[] = { WBP_QuickSlotIcon_1, WBP_QuickSlotIcon_2,
+        WBP_QuickSlotIcon_3, WBP_QuickSlotIcon_4 };
+    for (int32 Index = 0; Index < 4; ++Index)
+    {
+        if (!Labels[Index]) continue;
+        const FName ItemId = BoundInventory ? BoundInventory->GetQuickSlotItemId(Index) : NAME_None;
+        int32 Quantity = 0;
+        UTexture2D* IconTexture = nullptr;
+        if (BoundInventory && !ItemId.IsNone())
+        {
+            Quantity = BoundInventory->GetTotalQuantity(ItemId);
+            for (int32 SlotIndex = 0; SlotIndex < BoundInventory->GetMaxSlots(); ++SlotIndex)
+            {
+                UItemBase* Item = BoundInventory->GetItemAt(SlotIndex);
+                if (Item && Item->GetItemId() == ItemId)
+                {
+                    IconTexture = Item->GetData().AssetData.Icon.LoadSynchronous();
+                    break;
+                }
+            }
+        }
+        Labels[Index]->SetText(Quantity > 0 ? FText::AsNumber(Quantity) : FText::GetEmpty());
+        Labels[Index]->SetVisibility(Quantity > 0 ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+        if (Icons[Index])
+        {
+            Icons[Index]->SetBrushFromTexture(IconTexture);
+            Icons[Index]->SetVisibility(IconTexture ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
+        }
+    }
+}
+
+bool UCombatHUDWidget::NativeOnDrop(const FGeometry&, const FDragDropEvent& Event, UDragDropOperation* Operation)
+{
+    auto* Drag = Cast<UInventoryItemDragOperation>(Operation);
+    if (!Drag || !BoundInventory || Drag->Inventory != BoundInventory) return false;
+    return TryAssignQuickSlotAtPosition(Event.GetScreenSpacePosition(), Drag->Inventory, Drag->SlotIndex);
+}
+
+bool UCombatHUDWidget::TryAssignQuickSlotAtPosition(const FVector2D& ScreenPosition,
+    UInventoryComponent* Inventory, int32 InventorySlot)
+{
+    if (!Inventory || Inventory != BoundInventory) return false;
+    UBorder* QuickSlotBorders[] = { WBP_QuickSlot_1, WBP_QuickSlot_2,
+        WBP_QuickSlot_3, WBP_QuickSlot_4 };
+    for (int32 Index = 0; Index < UE_ARRAY_COUNT(QuickSlotBorders); ++Index)
+    {
+        if (QuickSlotBorders[Index] && QuickSlotBorders[Index]->GetCachedGeometry().IsUnderLocation(ScreenPosition))
+        {
+            // AssignQuickSlot broadcasts OnInventoryChanged, which refreshes this HUD.
+            return BoundInventory->AssignQuickSlot(Index, InventorySlot);
+        }
+    }
+    return false;
 }
 
 void UCombatHUDWidget::SetHealth(float Current, float Maximum)
