@@ -1,5 +1,6 @@
 #include "World/TreeResource.h"
 
+#include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Data/HarvestDataTypes.h"
 #include "Engine/StaticMesh.h"
@@ -23,10 +24,19 @@ bool ATreeResource::ConfigureResourcePresentation(FText& OutError)
 		OutError = FText::FromString(TEXT("나무 액터에 나무 수확 프로필이 지정되지 않았습니다."));
 		return false;
 	}
-	ResourceMesh->SetStaticMesh(TreeProfile->StandingMesh);
+	const int32 VariationIndex = FMath::RandRange(0, TreeProfile->ResourceMeshVariants.Num() - 1);
+	UStaticMesh* StandingMesh = TreeProfile->ResourceMeshVariants[VariationIndex];
+	if (!StandingMesh)
+	{
+		OutError = FText::FromString(TEXT("나무 수확 프로필에서 사용할 메시를 선택하지 못했습니다."));
+		return false;
+	}
+	ResourceMesh->SetStaticMesh(StandingMesh);
 	ResourceMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	const FBoxSphereBounds Bounds = TreeProfile->StandingMesh->GetBounds();
-	SetResourceCollisionBounds(Bounds.Origin, Bounds.BoxExtent);
+	ResourceCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	const float HalfHeight = TreeProfile->TrunkCollisionHeight * .5f;
+	SetResourceCollisionBounds(FVector(0.f, 0.f, HalfHeight),
+		FVector(TreeProfile->TrunkCollisionRadius, TreeProfile->TrunkCollisionRadius, HalfHeight));
 	return true;
 }
 

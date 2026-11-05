@@ -77,6 +77,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Harvest", meta = (ClampMin = "0.01"))
 	float MaxHealth = 5.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Harvest|Presentation")
+	TArray<TObjectPtr<UStaticMesh>> ResourceMeshVariants;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Harvest|Tools")
 	EHarvestToolType PreferredTool = EHarvestToolType::None;
 
@@ -100,10 +103,13 @@ class SIA_API UTreeHarvestProfile : public UHarvestProfile
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Harvest|Tree")
-	TObjectPtr<UStaticMesh> StandingMesh = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Harvest|Tree")
 	TObjectPtr<UStaticMesh> HitChipMesh = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Harvest|Tree", meta = (ClampMin = "1.0", Units = "cm"))
+	float TrunkCollisionRadius = 35.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Harvest|Tree", meta = (ClampMin = "1.0", Units = "cm"))
+	float TrunkCollisionHeight = 320.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Harvest|Tree", meta = (ClampMin = "1", ClampMax = "8"))
 	int32 ChipsPerHit = 2;

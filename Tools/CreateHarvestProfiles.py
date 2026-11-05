@@ -11,8 +11,22 @@ ROCK_MANIFEST = ROOT / "Tools" / "HarvestRockGroupManifest.json"
 
 TREE_FOLDER = "/Game/Sia/Harvesting/Trees"
 ROCK_FOLDER = "/Game/Sia/Harvesting/Rocks"
-TREE_MESH = "/Game/STF/Pack03-LandscapePro/Environment/Foliage/GreenTrees/tree01/SM_green-tree01"
+TREE_MESHES = [
+    "/Game/STF/Pack03-LandscapePro/Environment/Foliage/GreenTrees/tree01/SM_green-tree01",
+    "/Game/STF/Pack03-LandscapePro/Environment/Foliage/GreenTrees/tree02/SM_green-tree02",
+    "/Game/STF/Pack03-LandscapePro/Environment/Foliage/GreenTrees/tree03/SM_dead-tree03",
+    "/Game/STF/Pack03-LandscapePro/Environment/Foliage/GreenTrees/tree04/SM_dead-tree04",
+    "/Game/STF/Pack03-LandscapePro/Environment/Foliage/GreenTrees/tree05/SM_dead-tree05",
+]
+ROCK_MAIN_MESHES = [
+    "/Game/STF/Pack03-LandscapePro/Environment/Foliage/RocksMedium/SM_rock01_lod000",
+    "/Game/STF/Pack03-LandscapePro/Environment/Foliage/RocksMedium/SM_rock02_lod000",
+    "/Game/STF/Pack03-LandscapePro/Environment/Foliage/RocksMedium/SM_rock03_lod000",
+    "/Game/STF/Pack03-LandscapePro/Environment/Foliage/RocksMedium/SM_rock04_lod000",
+]
 LOG_MESH = "/Game/Mega_Survival_Tools/Models/SM_Log"
+TREE_TRUNK_COLLISION_RADIUS = 35.0
+TREE_TRUNK_COLLISION_HEIGHT = 320.0
 
 
 def enum_value(enum_type, name):
@@ -96,7 +110,11 @@ def main():
         drop("Log", 1.0, 2, 4),
         drop("Apple", 0.18, 1, 2),
     ])
-    tree_profile.set_editor_property("standing_mesh", load_mesh(TREE_MESH))
+    tree_profile.set_editor_property(
+        "resource_mesh_variants", [load_mesh(path) for path in TREE_MESHES]
+    )
+    tree_profile.set_editor_property("trunk_collision_radius", TREE_TRUNK_COLLISION_RADIUS)
+    tree_profile.set_editor_property("trunk_collision_height", TREE_TRUNK_COLLISION_HEIGHT)
     tree_profile.set_editor_property("hit_chip_mesh", load_mesh(LOG_MESH))
     tree_profile.set_editor_property("chips_per_hit", 2)
     tree_profile.set_editor_property("chip_scale", 0.12)
@@ -117,6 +135,9 @@ def main():
     rock_profile.set_editor_property("preferred_tool_damage_multiplier", 1.5)
     rock_profile.set_editor_property("size_yield_exponent", 1.0)
     rock_profile.set_editor_property("drops", [drop("Stone", 1.0, 2, 4)])
+    rock_profile.set_editor_property(
+        "resource_mesh_variants", [load_mesh(path) for path in ROCK_MAIN_MESHES]
+    )
     pieces = []
     for record in rock_manifest["pieces"]:
         piece = unreal.HarvestRockPiece()
@@ -154,15 +175,23 @@ def main():
             "tools": "/Game/Sia/Harvesting/Tools/{Axes,Hammers,Pickaxes,Hoes,Shovels}",
             "trees": "/Game/Sia/Harvesting/Trees",
             "rocks": "/Game/Sia/Harvesting/Rocks/Fragments/SM_RockGroup01",
-            "tree_source": TREE_MESH,
+            "tree_sources": TREE_MESHES,
+            "rock_main_sources": ROCK_MAIN_MESHES,
             "rock_source": rock_manifest["source"],
             "tool_source": "/Game/Fab/Survival_Game_Tool_Pack/survival_game_tool_pack_free_agustin_honnun/StaticMeshes/survival_game_tool_pack_free_agustin_honnun",
             "log_and_chip_source": LOG_MESH,
             "stone_pickup_piece": rock_manifest["stone_pickup_asset"],
         },
         "defaults": {
-            "tree": {"health": 100, "axe_multiplier": 1.5, "apple_probability": 0.18},
+            "tree": {
+                "health": 100,
+                "axe_multiplier": 1.5,
+                "apple_probability": 0.18,
+                "trunk_collision_radius_cm": TREE_TRUNK_COLLISION_RADIUS,
+                "trunk_collision_height_cm": TREE_TRUNK_COLLISION_HEIGHT,
+            },
             "rock": {"health": 80, "pickaxe_multiplier": 1.5, "edge_piece_order": "outside-in"},
+            "axe_grip_rotation_degrees": {"pitch": 90, "yaw": 0, "roll": 0},
             "rock_piece_ground_offset": "each piece half-height",
         },
     }

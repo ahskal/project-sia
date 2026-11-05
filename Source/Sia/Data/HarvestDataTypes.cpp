@@ -57,13 +57,30 @@ bool UHarvestProfile::IsValidForItemTable(const UDataTable* ItemTable, FText& Ou
 
 bool UHarvestProfile::HasValidResourcePresentation(FText& OutError) const
 {
+	if (ResourceMeshVariants.IsEmpty())
+	{
+		OutError = FText::FromString(TEXT("수확 프로필에 사용할 자원 메시가 없습니다."));
+		return false;
+	}
+	for (const TObjectPtr<UStaticMesh>& Mesh : ResourceMeshVariants)
+	{
+		if (!Mesh)
+		{
+			OutError = FText::FromString(TEXT("수확 프로필의 자원 메시 목록에 비어 있는 항목이 있습니다."));
+			return false;
+		}
+	}
 	OutError = FText::GetEmpty();
 	return true;
 }
 
 bool UTreeHarvestProfile::HasValidResourcePresentation(FText& OutError) const
 {
-	if (!StandingMesh || !HitChipMesh || ChipsPerHit <= 0 || ChipsPerHit > 8
+	if (!Super::HasValidResourcePresentation(OutError))
+		return false;
+	if (!HitChipMesh || ChipsPerHit <= 0 || ChipsPerHit > 8
+		|| !FMath::IsFinite(TrunkCollisionRadius) || TrunkCollisionRadius <= 0.f
+		|| !FMath::IsFinite(TrunkCollisionHeight) || TrunkCollisionHeight <= 0.f
 		|| !FMath::IsFinite(ChipScale) || ChipScale <= 0.f
         || !FMath::IsFinite(ChipRadius) || ChipRadius < 0.f
 		|| !FMath::IsFinite(ChipImpulse) || ChipImpulse < 0.f
@@ -80,6 +97,8 @@ bool UTreeHarvestProfile::HasValidResourcePresentation(FText& OutError) const
 
 bool URockHarvestProfile::HasValidResourcePresentation(FText& OutError) const
 {
+	if (!Super::HasValidResourcePresentation(OutError))
+		return false;
 	if (Pieces.IsEmpty() || PiecesReleasedPerHit <= 0 || PiecesReleasedPerHit > 4
 		|| !FMath::IsFinite(PieceImpulse) || PieceImpulse < 0.f
 		|| !FMath::IsFinite(CleanupDelaySeconds) || CleanupDelaySeconds <= 0.f)

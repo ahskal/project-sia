@@ -12,7 +12,19 @@
     "tools": "/Game/Sia/Harvesting/Tools/{Axes,Hammers,Pickaxes,Hoes,Shovels}",
     "trees": "/Game/Sia/Harvesting/Trees",
     "rocks": "/Game/Sia/Harvesting/Rocks/Fragments/SM_RockGroup01",
-    "tree_source": "/Game/STF/Pack03-LandscapePro/Environment/Foliage/GreenTrees/tree01/SM_green-tree01",
+    "tree_sources": [
+      "/Game/STF/Pack03-LandscapePro/Environment/Foliage/GreenTrees/tree01/SM_green-tree01",
+      "/Game/STF/Pack03-LandscapePro/Environment/Foliage/GreenTrees/tree02/SM_green-tree02",
+      "/Game/STF/Pack03-LandscapePro/Environment/Foliage/GreenTrees/tree03/SM_dead-tree03",
+      "/Game/STF/Pack03-LandscapePro/Environment/Foliage/GreenTrees/tree04/SM_dead-tree04",
+      "/Game/STF/Pack03-LandscapePro/Environment/Foliage/GreenTrees/tree05/SM_dead-tree05"
+    ],
+    "rock_main_sources": [
+      "/Game/STF/Pack03-LandscapePro/Environment/Foliage/RocksMedium/SM_rock01_lod000",
+      "/Game/STF/Pack03-LandscapePro/Environment/Foliage/RocksMedium/SM_rock02_lod000",
+      "/Game/STF/Pack03-LandscapePro/Environment/Foliage/RocksMedium/SM_rock03_lod000",
+      "/Game/STF/Pack03-LandscapePro/Environment/Foliage/RocksMedium/SM_rock04_lod000"
+    ],
     "rock_source": "/Game/STF/Pack03-LandscapePro/Environment/Foliage/RocksSmall/SM_RockGroup01",
     "tool_source": "/Game/Fab/Survival_Game_Tool_Pack/survival_game_tool_pack_free_agustin_honnun/StaticMeshes/survival_game_tool_pack_free_agustin_honnun",
     "log_and_chip_source": "/Game/Mega_Survival_Tools/Models/SM_Log",
@@ -22,12 +34,19 @@
     "tree": {
       "health": 100,
       "axe_multiplier": 1.5,
-      "apple_probability": 0.18
+      "apple_probability": 0.18,
+      "trunk_collision_radius_cm": 35.0,
+      "trunk_collision_height_cm": 320.0
     },
     "rock": {
       "health": 80,
       "pickaxe_multiplier": 1.5,
       "edge_piece_order": "outside-in"
+    },
+    "axe_grip_rotation_degrees": {
+      "pitch": 90,
+      "yaw": 0,
+      "roll": 0
     },
     "rock_piece_ground_offset": "each piece half-height"
   }

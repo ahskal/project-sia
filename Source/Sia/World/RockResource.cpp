@@ -6,7 +6,6 @@
 
 ARockResource::ARockResource()
 {
-	ResourceMesh->SetVisibility(false, true);
 	ResourceMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
@@ -18,11 +17,20 @@ bool ARockResource::ConfigureResourcePresentation(FText& OutError)
 		OutError = FText::FromString(TEXT("바위 액터에 바위 수확 프로필이 지정되지 않았습니다."));
 		return false;
 	}
-	ResourceMesh->SetVisibility(false, true);
+	const int32 VariationIndex = FMath::RandRange(0, RockProfile->ResourceMeshVariants.Num() - 1);
+	UStaticMesh* StandingMesh = RockProfile->ResourceMeshVariants[VariationIndex];
+	if (!StandingMesh)
+	{
+		OutError = FText::FromString(TEXT("바위 수확 프로필에서 사용할 메시를 선택하지 못했습니다."));
+		return false;
+	}
+	ResourceMesh->SetStaticMesh(StandingMesh);
+	ResourceMesh->SetVisibility(true, true);
 	ResourceMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	PieceComponents.Reset();
 	NextPieceIndex = 0;
-	FBox CollisionBounds(ForceInit);
+	const FBoxSphereBounds MainBounds = StandingMesh->GetBounds();
+	SetResourceCollisionBounds(MainBounds.Origin, MainBounds.BoxExtent);
 
 	for (int32 Index = 0; Index < RockProfile->Pieces.Num(); ++Index)
 	{
@@ -34,21 +42,25 @@ bool ARockResource::ConfigureResourcePresentation(FText& OutError)
 		PieceComponent->SetupAttachment(SceneRoot);
 		PieceComponent->SetStaticMesh(Piece.Mesh);
 		FTransform PieceTransform = Piece.RelativeTransform;
-		PieceTransform.SetLocation(PieceTransform.GetLocation() * ResourceSize);
+		FVector Outward = Piece.RelativeTransform.GetLocation().GetSafeNormal();
+		if (Outward.IsNearlyZero())
+			Outward = FVector::UpVector;
+		const float LargestAxis = FMath::Max(FMath::Abs(Outward.X),
+			FMath::Max(FMath::Abs(Outward.Y), FMath::Abs(Outward.Z)));
+		Outward /= LargestAxis;
+		const FVector SurfaceOffset = FVector(
+			Outward.X * MainBounds.BoxExtent.X,
+			Outward.Y * MainBounds.BoxExtent.Y,
+			Outward.Z * MainBounds.BoxExtent.Z) * .8f;
+		PieceTransform.SetLocation((MainBounds.Origin + SurfaceOffset) * ResourceSize);
 		PieceTransform.SetScale3D(PieceTransform.GetScale3D() * ResourceSize);
 		PieceComponent->SetRelativeTransform(PieceTransform);
 		PieceComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		PieceComponent->SetVisibility(false, true);
 		PieceComponent->RegisterComponent();
 		PieceComponents.Add(PieceComponent);
-
-		const FBoxSphereBounds MeshBounds = Piece.Mesh->GetBounds();
-		const FVector PieceCenter = Piece.RelativeTransform.TransformPosition(MeshBounds.Origin);
-		const FVector PieceExtent = MeshBounds.BoxExtent * Piece.RelativeTransform.GetScale3D();
-		CollisionBounds += FBox::BuildAABB(PieceCenter, PieceExtent);
 	}
-	if (CollisionBounds.IsValid)
-		SetResourceCollisionBounds(CollisionBounds.GetCenter(), CollisionBounds.GetExtent());
-	return !PieceComponents.IsEmpty();
+	return ResourceMesh->GetStaticMesh() && !PieceComponents.IsEmpty();
 }
 
 void ARockResource::OnAcceptedHit(const FHarvestHitContext&, const bool)

@@ -73,10 +73,15 @@ def main():
         "Translation": {"X": 0, "Y": 0, "Z": 0},
         "Scale3D": {"X": 0.55, "Y": 0.55, "Z": 0.55},
     }
+    axe_grip = {
+        "Rotation": {"X": 0, "Y": 0.7071067811865476, "Z": 0, "W": 0.7071067811865476},
+        "Translation": {"X": 0, "Y": 0, "Z": 0},
+        "Scale3D": {"X": 0.55, "Y": 0.55, "Z": 0.55},
+    }
     for row in rows:
         row.setdefault("HarvestToolType", "None")
         row["ToolGripTransform"] = {
-            field: values.copy() for field, values in default_grip.items()
+            field: values.copy() for field, values in (axe_grip if row["Name"] == "Axe" else default_grip).items()
         }
 
     wood_mesh = "/Game/Mega_Survival_Tools/Models/SM_Log.SM_Log"
@@ -99,6 +104,10 @@ def main():
              "/Game/Sia/Harvesting/Tools/Shovels/SM_Shovel.SM_Shovel"),
     ]
     for row in additions:
+        grip = axe_grip if row["Name"] == "Axe" else default_grip
+        row["ToolGripTransform"] = {
+            field: values.copy() for field, values in grip.items()
+        }
         existing = by_name.get(row["Name"])
         if existing is None:
             rows.append(row)

@@ -53,6 +53,7 @@ namespace HarvestingTests
 		{
 			if (!World)
 				return;
+			World->EndPlay(EEndPlayReason::Destroyed);
 			World->DestroyWorld(false);
 			if (bHasEngineContext && GEngine)
 				GEngine->DestroyWorldContext(World);
@@ -142,6 +143,16 @@ bool FHarvestingAssetDefinitionsTest::RunTest(const FString&)
 			Row->ItemType == EItemType::Weapon && Row->EquipmentSlot == EEquipmentSlot::Weapon
 				&& Row->HarvestToolType != EHarvestToolType::None && Row->AssetData.Mesh.LoadSynchronous());
 	}
+	const FItemData* Pickaxe = Data->FindRow<FItemData>(TEXT("Pickaxe"), TEXT("Harvesting asset test"), false);
+	const FItemData* Hoe = Data->FindRow<FItemData>(TEXT("Hoe"), TEXT("Harvesting asset test"), false);
+	TestTrue(TEXT("Pickaxe row keeps the pickaxe name, type, and mesh"), Pickaxe
+		&& Pickaxe->TextData.DisplayName.ToString() == TEXT("곡괭이")
+		&& Pickaxe->HarvestToolType == EHarvestToolType::Pickaxe
+		&& Pickaxe->AssetData.Mesh.GetAssetName() == TEXT("SM_Pickaxe"));
+	TestTrue(TEXT("Hoe row keeps the hoe name, type, and mesh"), Hoe
+		&& Hoe->TextData.DisplayName.ToString() == TEXT("괭이")
+		&& Hoe->HarvestToolType == EHarvestToolType::Hoe
+		&& Hoe->AssetData.Mesh.GetAssetName() == TEXT("SM_Hoe"));
 	const FItemData* Log = Data->FindRow<FItemData>(TEXT("Log"), TEXT("Harvesting asset test"), false);
 	const FItemData* Stone = Data->FindRow<FItemData>(TEXT("Stone"), TEXT("Harvesting asset test"), false);
 	TestTrue(TEXT("Log uses SM_Log"), Log && Log->AssetData.Mesh.LoadSynchronous()
@@ -158,6 +169,31 @@ bool FHarvestingAssetDefinitionsTest::RunTest(const FString&)
 	FText Error;
 	TestTrue(TEXT("tree profile resolves all drop and presentation assets"), TreeProfile->IsValidForItemTable(Data, Error));
 	TestTrue(TEXT("rock profile resolves all drop and fragment assets"), RockProfile->IsValidForItemTable(Data, Error));
+	const TArray<FString> ExpectedTreeVariants{
+		TEXT("SM_green-tree01"), TEXT("SM_green-tree02"), TEXT("SM_dead-tree03"),
+		TEXT("SM_dead-tree04"), TEXT("SM_dead-tree05") };
+	TestEqual(TEXT("tree profile has five STF variants"), TreeProfile->ResourceMeshVariants.Num(), 5);
+	for (int32 Index = 0; Index < ExpectedTreeVariants.Num(); ++Index)
+	{
+		TestTrue(FString::Printf(TEXT("tree variant %d uses the requested STF mesh"), Index + 1),
+			TreeProfile->ResourceMeshVariants.IsValidIndex(Index)
+			&& TreeProfile->ResourceMeshVariants[Index]
+			&& TreeProfile->ResourceMeshVariants[Index]->GetName() == ExpectedTreeVariants[Index]);
+	}
+	const TArray<FString> ExpectedRockVariants{
+		TEXT("SM_rock01_lod000"), TEXT("SM_rock02_lod000"),
+		TEXT("SM_rock03_lod000"), TEXT("SM_rock04_lod000") };
+	TestEqual(TEXT("rock profile has four requested main meshes"), RockProfile->ResourceMeshVariants.Num(), 4);
+	for (int32 Index = 0; Index < ExpectedRockVariants.Num(); ++Index)
+	{
+		TestTrue(FString::Printf(TEXT("rock main variant %d uses the requested STF mesh"), Index + 1),
+			RockProfile->ResourceMeshVariants.IsValidIndex(Index)
+			&& RockProfile->ResourceMeshVariants[Index]
+			&& RockProfile->ResourceMeshVariants[Index]->GetName() == ExpectedRockVariants[Index]);
+	}
+	TestTrue(TEXT("tree trunk collision is narrow enough to approach"),
+		FMath::IsNearlyEqual(TreeProfile->TrunkCollisionRadius, 35.f)
+		&& FMath::IsNearlyEqual(TreeProfile->TrunkCollisionHeight, 320.f));
 	TestEqual(TEXT("rock fragments are configured in four outside-in stages"), RockProfile->Pieces.Num(), 4);
 	const FHarvestDropRule* LogRule = TreeProfile->Drops.FindByPredicate(
 		[](const FHarvestDropRule& Rule) { return Rule.ItemId == TEXT("Log"); });
@@ -232,6 +268,18 @@ bool FTreeHarvestGameplayTest::RunTest(const FString&)
 	TestTrue(TEXT("tree begins play with its profile"), Tree->HasActorBegunPlay());
 	TestEqual(TEXT("tree profile is active in play"), Tree->GetMaximumHealth(), 100.f);
 	TestEqual(TEXT("tree health initializes at play"), Tree->GetRemainingHealth(), 100.f);
+	UTreeHarvestProfile* TreeProfile = LoadObject<UTreeHarvestProfile>(nullptr,
+		TEXT("/Game/Sia/Harvesting/Trees/Profiles/DA_TreeHarvestProfile.DA_TreeHarvestProfile"));
+	UStaticMeshComponent* TreeMesh = Tree->FindComponentByClass<UStaticMeshComponent>();
+	UBoxComponent* TreeCollision = Tree->FindComponentByClass<UBoxComponent>();
+	TestTrue(TEXT("tree selects one of its five profile variants"), TreeProfile && TreeMesh
+		&& TreeMesh->GetStaticMesh()
+		&& TreeProfile->ResourceMeshVariants.ContainsByPredicate([TreeMesh](const TObjectPtr<UStaticMesh>& Mesh)
+			{ return Mesh == TreeMesh->GetStaticMesh(); }));
+	TestTrue(TEXT("tree collision is a trunk-sized overlap, not a canopy blocker"), TreeCollision
+		&& TreeCollision->GetUnscaledBoxExtent().X <= 35.f
+		&& TreeCollision->GetUnscaledBoxExtent().Y <= 35.f
+		&& TreeCollision->GetCollisionResponseToChannel(ECC_Pawn) == ECR_Overlap);
 	const FHarvestHitContext Hit{ 100.f, EHarvestToolType::Axe, FVector(0.f, 0.f, 60.f),
 		FVector::UpVector, FVector::ForwardVector, nullptr };
 	TestEqual(TEXT("lethal hit applies remaining health"), Tree->ReceiveHarvestHit(Hit), 100.f);
@@ -285,6 +333,16 @@ bool FRockHarvestGameplayTest::RunTest(const FString&)
 	TestTrue(TEXT("rock begins play with its profile"), BrokenRock->HasActorBegunPlay());
 	TestEqual(TEXT("rock profile is active in play"), BrokenRock->GetMaximumHealth(), 80.f);
 	TestEqual(TEXT("rock health initializes at play"), BrokenRock->GetRemainingHealth(), 80.f);
+	bool bHasMainRockMesh = false;
+	for (UStaticMeshComponent* Mesh : TInlineComponentArray<UStaticMeshComponent*>(BrokenRock))
+		bHasMainRockMesh |= Mesh && Mesh->IsVisible()
+			&& Profile->ResourceMeshVariants.ContainsByPredicate([Mesh](const TObjectPtr<UStaticMesh>& Variant)
+				{ return Variant == Mesh->GetStaticMesh(); });
+	TestTrue(TEXT("rock displays one of the four requested main meshes"), bHasMainRockMesh);
+	UBoxComponent* RockCollision = BrokenRock->FindComponentByClass<UBoxComponent>();
+	TestTrue(TEXT("rock collision follows the selected main mesh bounds"), RockCollision
+		&& RockCollision->GetUnscaledBoxExtent().X < 100.f
+		&& RockCollision->GetUnscaledBoxExtent().Y < 100.f);
 	CenterHitRock->ReceiveHarvestHit({ 1.f, EHarvestToolType::None, FVector(0.f, 0.f, 20.f), FVector::UpVector, FVector::ForwardVector, nullptr });
 	EdgeHitRock->ReceiveHarvestHit({ 1.f, EHarvestToolType::None, FVector(400.f, 0.f, 20.f), FVector::UpVector, FVector::ForwardVector, nullptr });
 	const FHarvestRockPiece& FirstPiece = Profile->Pieces[0];
@@ -303,6 +361,16 @@ bool FRockHarvestGameplayTest::RunTest(const FString&)
 	TestEqual(TEXT("broken rock produces one Stone pickup"), HarvestingTests::CountPickups(TestWorld.World, TEXT("Stone")), 1);
 	AItemPickup* Stone = HarvestingTests::FindPickup(TestWorld.World, TEXT("Stone"));
 	TestTrue(TEXT("stone quantity follows the profile range"), Stone && Stone->Quantity >= 2 && Stone->Quantity <= 4);
+	if (Stone)
+	{
+		UStaticMeshComponent* Mesh = Stone->FindComponentByClass<UStaticMeshComponent>();
+		if (TestNotNull(TEXT("stone pickup mesh"), Mesh))
+		{
+			Mesh->UpdateBounds();
+			TestTrue(TEXT("harvested stone rests on the test floor"),
+				FMath::IsNearlyEqual(Mesh->Bounds.GetBox().Min.Z, 0.f, 1.f));
+		}
+	}
 	return true;
 }
 
@@ -357,6 +425,9 @@ bool FCharacterComboAndDualHitboxTest::RunTest(const FString&)
 		TestEqual(TEXT("equipped axe attaches to the right hand"), HeldTool->GetAttachSocketName(), FName(TEXT("hand_r")));
 		if (TestNotNull(TEXT("equipped axe mesh"), HeldTool->GetStaticMesh().Get()))
 			TestEqual(TEXT("equipped axe uses the extracted axe mesh"), HeldTool->GetStaticMesh()->GetName(), FString(TEXT("SM_Axe")));
+		TestTrue(TEXT("equipped axe grip rotates its long axis forward"),
+			FVector::DotProduct(HeldTool->GetRelativeTransform().TransformVectorNoScale(FVector::UpVector),
+				FVector::ForwardVector) > .99f);
 	}
 	UClass* TreeClass = LoadClass<ATreeResource>(nullptr,
 		TEXT("/Game/Sia/Harvesting/Trees/BP_TreeResource.BP_TreeResource_C"));
