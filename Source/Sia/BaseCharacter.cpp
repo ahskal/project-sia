@@ -161,7 +161,7 @@ void ABaseCharacter::BeginPlay()
     }
 
     GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-    GetCharacterMovement()->JumpZVelocity = 500.f;
+    GetCharacterMovement()->JumpZVelocity = JumpZVelocity;
 
 }
 
