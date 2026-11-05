@@ -34,7 +34,7 @@
 | 나무 액터 | `/Game/Sia/Harvesting/Trees/BP_TreeResource` |
 | 나무 프로필 | `/Game/Sia/Harvesting/Trees/Profiles/DA_TreeHarvestProfile` |
 | 나무 본체 바리에이션 | `/Game/STF/Pack03-LandscapePro/Environment/Foliage/GreenTrees/tree01/SM_green-tree01`, `/Game/STF/Pack03-LandscapePro/Environment/Foliage/GreenTrees/tree02/SM_green-tree02`, `/Game/STF/Pack03-LandscapePro/Environment/Foliage/GreenTrees/tree03/SM_dead-tree03`, `/Game/STF/Pack03-LandscapePro/Environment/Foliage/GreenTrees/tree04/SM_dead-tree04`, `/Game/STF/Pack03-LandscapePro/Environment/Foliage/GreenTrees/tree05/SM_dead-tree05` |
-| 나무 충돌 | `DA_TreeHarvestProfile`: 몸통 반지름 35cm, 높이 320cm, 플레이어 충돌은 겹침 |
+| 나무 충돌 | `DA_TreeHarvestProfile`: 몸통 반지름 35cm, 높이 320cm, Pawn 채널 차단 |
 | 통나무 픽업과 작은 충격 조각 | `/Game/Mega_Survival_Tools/Models/SM_Log` |
 | 바위 액터 | `/Game/Sia/Harvesting/Rocks/BP_RockResource` |
 | 바위 프로필 | `/Game/Sia/Harvesting/Rocks/Profiles/DA_RockHarvestProfile` |
