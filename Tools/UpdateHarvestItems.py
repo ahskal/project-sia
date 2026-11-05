@@ -10,6 +10,21 @@ STONE_MESH = (
     "/Game/Sia/Harvesting/Rocks/Fragments/SM_RockGroup01/"
     "SM_RockGroup01_Piece04.SM_RockGroup01_Piece04"
 )
+TOOL_GRIP_TRANSLATIONS = {
+    "Axe": {"X": 0, "Y": 9, "Z": 20},
+    "Hammer": {"X": 0, "Y": 3, "Z": 20},
+    "Pickaxe": {"X": 0, "Y": 3, "Z": 20},
+    "Hoe": {"X": 0, "Y": 13, "Z": 20},
+    "Shovel": {"X": 0, "Y": 3, "Z": 20},
+}
+
+
+def grip_transform(translation):
+    return {
+        "Rotation": {"X": 0, "Y": 0, "Z": 0.7071067811865476, "W": 0.7071067811865476},
+        "Translation": translation.copy(),
+        "Scale3D": {"X": 0.55, "Y": 0.55, "Z": 0.55},
+    }
 
 
 def material(name, display_name, description, icon, mesh, weight, sell_value):
@@ -68,21 +83,11 @@ def main():
         raise ValueError("The existing Stone row is missing; refusing to invent a replacement.")
     stone["AssetData"]["Mesh"] = STONE_MESH
 
-    default_grip = {
-        "Rotation": {"X": 0, "Y": 0, "Z": 0, "W": 1},
-        "Translation": {"X": 0, "Y": 0, "Z": 0},
-        "Scale3D": {"X": 0.55, "Y": 0.55, "Z": 0.55},
-    }
-    axe_grip = {
-        "Rotation": {"X": 0, "Y": 0.7071067811865476, "Z": 0, "W": 0.7071067811865476},
-        "Translation": {"X": 0, "Y": 0, "Z": 0},
-        "Scale3D": {"X": 0.55, "Y": 0.55, "Z": 0.55},
-    }
+    default_grip = grip_transform({"X": 0, "Y": 0, "Z": 0})
     for row in rows:
         row.setdefault("HarvestToolType", "None")
-        row["ToolGripTransform"] = {
-            field: values.copy() for field, values in (axe_grip if row["Name"] == "Axe" else default_grip).items()
-        }
+        translation = TOOL_GRIP_TRANSLATIONS.get(row["Name"])
+        row["ToolGripTransform"] = grip_transform(translation) if translation else default_grip
 
     wood_mesh = "/Game/Mega_Survival_Tools/Models/SM_Log.SM_Log"
     additions = [
@@ -96,18 +101,16 @@ def main():
              "/Game/Sia/Harvesting/Tools/Hammers/SM_Hammer.SM_Hammer",
              "/Game/50_Stylized_Icons/Textures/T_hammer_9.T_hammer_9"),
         tool("Pickaxe", "곡괭이", "Pickaxe",
-             "/Game/Sia/Harvesting/Tools/Pickaxes/SM_Pickaxe.SM_Pickaxe",
+             "/Game/Sia/Harvesting/Tools/Hoes/SM_Hoe.SM_Hoe",
              "/Game/50_Stylized_Icons/Textures/T_Whetstone.T_Whetstone"),
         tool("Hoe", "괭이", "Hoe",
-             "/Game/Sia/Harvesting/Tools/Hoes/SM_Hoe.SM_Hoe"),
+             "/Game/Sia/Harvesting/Tools/Pickaxes/SM_Pickaxe.SM_Pickaxe"),
         tool("Shovel", "삽", "Shovel",
              "/Game/Sia/Harvesting/Tools/Shovels/SM_Shovel.SM_Shovel"),
     ]
     for row in additions:
-        grip = axe_grip if row["Name"] == "Axe" else default_grip
-        row["ToolGripTransform"] = {
-            field: values.copy() for field, values in grip.items()
-        }
+        translation = TOOL_GRIP_TRANSLATIONS.get(row["Name"])
+        row["ToolGripTransform"] = grip_transform(translation) if translation else default_grip
         existing = by_name.get(row["Name"])
         if existing is None:
             rows.append(row)

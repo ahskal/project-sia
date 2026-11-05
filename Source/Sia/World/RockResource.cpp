@@ -1,5 +1,6 @@
 #include "World/RockResource.h"
 
+#include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Data/HarvestDataTypes.h"
 #include "Engine/StaticMesh.h"
@@ -97,11 +98,21 @@ bool ARockResource::ConfigureResourcePresentation(FText& OutError)
 
 void ARockResource::OnAcceptedHit(const FHarvestHitContext&, const bool bWasLethal)
 {
-	if (bWasLethal)
-		return;
-
 	const URockHarvestProfile* RockProfile = Cast<URockHarvestProfile>(Profile);
-	if (RockProfile)
+	const float MaximumHealth = GetMaximumHealth();
+	if (RockProfile && ResourceMesh && ResourceMesh->GetStaticMesh() && MaximumHealth > 0.f)
+	{
+		const float HealthFraction = FMath::Clamp(GetRemainingHealth() / MaximumHealth, 0.f, 1.f);
+		const float VisualScale = FMath::Lerp(.5f, 1.f, HealthFraction);
+		ResourceMesh->SetRelativeScale3D(FVector(ResourceSize * VisualScale));
+
+		FVector CollisionExtent = ResourceMesh->GetStaticMesh()->GetBounds().BoxExtent;
+		CollisionExtent.Z *= RockProfile->CollisionVerticalScale;
+		SetResourceCollisionBounds(ResourceMesh->GetStaticMesh()->GetBounds().Origin * VisualScale,
+			CollisionExtent * VisualScale);
+	}
+
+	if (!bWasLethal && RockProfile)
 		ReleaseNextPieces(RockProfile->PiecesReleasedPerHit);
 }
 
@@ -110,11 +121,14 @@ void ARockResource::OnResourceDepleted(const FHarvestHitContext& Hit)
 	ResourceMesh->SetVisibility(false, true);
 	// Re-enable actor-level collision so the Geometry Collection can collide with the world.
 	SetActorEnableCollision(true);
+	if (ResourceCollision)
+		ResourceCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	if (DestructionComponent)
 	{
 		DestructionComponent->SetRelativeTransform(ResourceMesh->GetRelativeTransform());
 		DestructionComponent->SetCollisionObjectType(ECC_PhysicsBody);
 		DestructionComponent->SetCollisionResponseToAllChannels(ECR_Block);
+		DestructionComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 		DestructionComponent->SetEnableGravity(true);
 		DestructionComponent->SetVisibility(true, true);
 		DestructionComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);

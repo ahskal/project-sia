@@ -19,8 +19,8 @@ SOURCE_PATH = (
 OUTPUTS = [
     ("Axe", "/Game/Sia/Harvesting/Tools/Axes/SM_Axe"),
     ("Hammer", "/Game/Sia/Harvesting/Tools/Hammers/SM_Hammer"),
-    ("Pickaxe", "/Game/Sia/Harvesting/Tools/Pickaxes/SM_Pickaxe"),
-    ("Hoe", "/Game/Sia/Harvesting/Tools/Hoes/SM_Hoe"),
+    ("Hoe", "/Game/Sia/Harvesting/Tools/Pickaxes/SM_Pickaxe"),
+    ("Pickaxe", "/Game/Sia/Harvesting/Tools/Hoes/SM_Hoe"),
     ("Shovel", "/Game/Sia/Harvesting/Tools/Shovels/SM_Shovel"),
 ]
 MANIFEST_PATH = str(

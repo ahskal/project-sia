@@ -33,7 +33,7 @@ bool ATreeResource::ConfigureResourcePresentation(FText& OutError)
 	}
 	ResourceMesh->SetStaticMesh(StandingMesh);
 	ResourceMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	ResourceCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	ResourceCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
 	const float HalfHeight = TreeProfile->TrunkCollisionHeight * .5f;
 	SetResourceCollisionBounds(FVector(0.f, 0.f, HalfHeight),
 		FVector(TreeProfile->TrunkCollisionRadius, TreeProfile->TrunkCollisionRadius, HalfHeight));

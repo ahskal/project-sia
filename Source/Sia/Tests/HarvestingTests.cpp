@@ -151,11 +151,32 @@ bool FHarvestingAssetDefinitionsTest::RunTest(const FString&)
 	TestTrue(TEXT("Pickaxe row keeps the pickaxe name, type, and mesh"), Pickaxe
 		&& Pickaxe->TextData.DisplayName.ToString() == TEXT("곡괭이")
 		&& Pickaxe->HarvestToolType == EHarvestToolType::Pickaxe
-		&& Pickaxe->AssetData.Mesh.GetAssetName() == TEXT("SM_Pickaxe"));
+		&& Pickaxe->AssetData.Mesh.ToSoftObjectPath().ToString()
+			== TEXT("/Game/Sia/Harvesting/Tools/Hoes/SM_Hoe.SM_Hoe"));
 	TestTrue(TEXT("Hoe row keeps the hoe name, type, and mesh"), Hoe
 		&& Hoe->TextData.DisplayName.ToString() == TEXT("괭이")
 		&& Hoe->HarvestToolType == EHarvestToolType::Hoe
-		&& Hoe->AssetData.Mesh.GetAssetName() == TEXT("SM_Hoe"));
+		&& Hoe->AssetData.Mesh.ToSoftObjectPath().ToString()
+			== TEXT("/Game/Sia/Harvesting/Tools/Pickaxes/SM_Pickaxe.SM_Pickaxe"));
+	const auto HasToolGrip = [](const FItemData* Item, const FVector& Location)
+	{
+		if (!Item)
+			return false;
+		const FTransform& Grip = Item->ToolGripTransform;
+		return Grip.GetLocation().Equals(Location, .01f)
+			&& Grip.GetRotation().Rotator().Equals(FRotator(0.f, 90.f, 0.f), .01f)
+			&& Grip.GetScale3D().Equals(FVector(.55f), .001f);
+	};
+	TestTrue(TEXT("axe grip matches its authored component transform"),
+		HasToolGrip(Data->FindRow<FItemData>(TEXT("Axe"), TEXT("Harvesting asset test"), false), FVector(0.f, 9.f, 20.f)));
+	TestTrue(TEXT("hammer grip matches its authored component transform"),
+		HasToolGrip(Data->FindRow<FItemData>(TEXT("Hammer"), TEXT("Harvesting asset test"), false), FVector(0.f, 3.f, 20.f)));
+	TestTrue(TEXT("pickaxe grip matches its authored component transform"),
+		HasToolGrip(Pickaxe, FVector(0.f, 3.f, 20.f)));
+	TestTrue(TEXT("hoe grip matches its authored component transform"),
+		HasToolGrip(Hoe, FVector(0.f, 13.f, 20.f)));
+	TestTrue(TEXT("shovel grip matches its authored component transform"),
+		HasToolGrip(Data->FindRow<FItemData>(TEXT("Shovel"), TEXT("Harvesting asset test"), false), FVector(0.f, 3.f, 20.f)));
 	const FItemData* Log = Data->FindRow<FItemData>(TEXT("Log"), TEXT("Harvesting asset test"), false);
 	const FItemData* Stone = Data->FindRow<FItemData>(TEXT("Stone"), TEXT("Harvesting asset test"), false);
 	TestTrue(TEXT("Log uses SM_Log"), Log && Log->AssetData.Mesh.LoadSynchronous()
@@ -289,10 +310,10 @@ bool FTreeHarvestGameplayTest::RunTest(const FString&)
 		&& TreeMesh->GetStaticMesh()
 		&& TreeProfile->ResourceMeshVariants.ContainsByPredicate([TreeMesh](const TObjectPtr<UStaticMesh>& Mesh)
 			{ return Mesh == TreeMesh->GetStaticMesh(); }));
-	TestTrue(TEXT("tree collision is a trunk-sized overlap, not a canopy blocker"), TreeCollision
+	TestTrue(TEXT("tree trunk collision blocks the player without covering the canopy"), TreeCollision
 		&& TreeCollision->GetUnscaledBoxExtent().X <= 35.f
 		&& TreeCollision->GetUnscaledBoxExtent().Y <= 35.f
-		&& TreeCollision->GetCollisionResponseToChannel(ECC_Pawn) == ECR_Overlap);
+		&& TreeCollision->GetCollisionResponseToChannel(ECC_Pawn) == ECR_Block);
 	const FHarvestHitContext Hit{ 100.f, EHarvestToolType::Axe, FVector(0.f, 0.f, 60.f),
 		FVector::UpVector, FVector::ForwardVector, nullptr };
 	TestEqual(TEXT("lethal hit applies remaining health"), Tree->ReceiveHarvestHit(Hit), 100.f);
@@ -381,6 +402,19 @@ bool FRockHarvestGameplayTest::RunTest(const FString&)
 			++FirstPieceDebrisCount;
 	}
 	TestEqual(TEXT("center and edge impacts release the same outer fragment"), FirstPieceDebrisCount, 2);
+	const float InitialRockScale = MainRockMesh ? MainRockMesh->GetRelativeScale3D().X : 0.f;
+	const float InitialCollisionWidth = RockCollision ? RockCollision->GetUnscaledBoxExtent().X : 0.f;
+	BrokenRock->ReceiveHarvestHit({ 10.f, EHarvestToolType::None, FVector(1000.f, 0.f, 20.f),
+		FVector::UpVector, FVector::ForwardVector, nullptr });
+	const float FirstHitRockScale = MainRockMesh ? MainRockMesh->GetRelativeScale3D().X : 0.f;
+	const float FirstHitCollisionWidth = RockCollision ? RockCollision->GetUnscaledBoxExtent().X : 0.f;
+	TestTrue(TEXT("rock mesh and collision shrink after the first hit"),
+		FirstHitRockScale < InitialRockScale && FirstHitRockScale > 0.f
+		&& FirstHitCollisionWidth < InitialCollisionWidth);
+	BrokenRock->ReceiveHarvestHit({ 10.f, EHarvestToolType::None, FVector(1000.f, 0.f, 20.f),
+		FVector::UpVector, FVector::ForwardVector, nullptr });
+	TestTrue(TEXT("rock shrinks again as its health decreases"), MainRockMesh
+		&& MainRockMesh->GetRelativeScale3D().X < FirstHitRockScale);
 	const FHarvestHitContext LethalHit{ 80.f, EHarvestToolType::Pickaxe, FVector(1000.f, 0.f, 20.f),
 		FVector::UpVector, FVector::ForwardVector, nullptr };
 	BrokenRock->ReceiveHarvestHit(LethalHit);
@@ -401,6 +435,17 @@ bool FRockHarvestGameplayTest::RunTest(const FString&)
 	TestTrue(TEXT("the standing rock is hidden while Chaos debris is active"), MainRockMesh
 		&& !MainRockMesh->IsVisible() && Destruction && Destruction->IsVisible()
 		&& Destruction->IsSimulatingPhysics() && BrokenRock->GetActorEnableCollision());
+	TestTrue(TEXT("depleted rock no longer blocks player movement"), RockCollision
+		&& RockCollision->GetCollisionEnabled() == ECollisionEnabled::NoCollision
+		&& Destruction && Destruction->GetCollisionResponseToChannel(ECC_Pawn) == ECR_Ignore);
+	bool bAllRockDebrisIgnoresPawn = true;
+	for (TActorIterator<AHarvestDebris> It(TestWorld->World); It; ++It)
+	{
+		const UBoxComponent* DebrisCollision = It->FindComponentByClass<UBoxComponent>();
+		bAllRockDebrisIgnoresPawn &= DebrisCollision
+			&& DebrisCollision->GetCollisionResponseToChannel(ECC_Pawn) == ECR_Ignore;
+	}
+	TestTrue(TEXT("harvesting debris cannot block the player"), bAllRockDebrisIgnoresPawn);
 	TestTrue(TEXT("the rock schedules cleanup after exactly three seconds"),
 		FMath::IsNearlyEqual(BrokenRock->GetLifeSpan(), 3.f));
 
@@ -491,10 +536,8 @@ bool FCharacterComboAndDualHitboxTest::RunTest(const FString&)
 		TestEqual(TEXT("equipped axe attaches to the authored right-hand grip"), HeldTool->GetAttachSocketName(), FName(TEXT("HandGrip_R")));
 		if (TestNotNull(TEXT("equipped axe mesh"), HeldTool->GetStaticMesh().Get()))
 			TestEqual(TEXT("equipped axe uses the extracted axe mesh"), HeldTool->GetStaticMesh()->GetName(), FString(TEXT("SM_Axe")));
-		const FVector AxeLongAxis = HeldTool->GetComponentTransform()
-			.TransformVectorNoScale(FVector::UpVector).GetSafeNormal();
-		TestTrue(TEXT("equipped axe handle points upward beside the character"),
-			FVector::DotProduct(AxeLongAxis, FVector::UpVector) > .9f);
+		TestTrue(TEXT("equipped axe uses the DataTable grip transform"),
+			HeldTool->GetRelativeTransform().Equals(EquippedAxe->GetData().ToolGripTransform, .01f));
 	}
 	UClass* TreeClass = LoadClass<ATreeResource>(nullptr,
 		TEXT("/Game/Sia/Harvesting/Trees/BP_TreeResource.BP_TreeResource_C"));

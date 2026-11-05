@@ -46,7 +46,7 @@
       ]
     },
     {
-      "tool": "Pickaxe",
+      "tool": "Hoe",
       "asset": "/Game/Sia/Harvesting/Tools/Pickaxes/SM_Pickaxe.SM_Pickaxe",
       "source": "/Game/Fab/Survival_Game_Tool_Pack/survival_game_tool_pack_free_agustin_honnun/StaticMeshes/survival_game_tool_pack_free_agustin_honnun",
       "component_count": 10,
@@ -67,7 +67,7 @@
       ]
     },
     {
-      "tool": "Hoe",
+      "tool": "Pickaxe",
       "asset": "/Game/Sia/Harvesting/Tools/Hoes/SM_Hoe.SM_Hoe",
       "source": "/Game/Fab/Survival_Game_Tool_Pack/survival_game_tool_pack_free_agustin_honnun/StaticMeshes/survival_game_tool_pack_free_agustin_honnun",
       "component_count": 10,

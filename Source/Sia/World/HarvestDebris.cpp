@@ -12,6 +12,7 @@ AHarvestDebris::AHarvestDebris()
 	PhysicsBody->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	PhysicsBody->SetCollisionObjectType(ECC_PhysicsBody);
 	PhysicsBody->SetCollisionResponseToAllChannels(ECR_Block);
+	PhysicsBody->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	PhysicsBody->SetSimulatePhysics(false);
 
 	MeshVisual = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshVisual"));

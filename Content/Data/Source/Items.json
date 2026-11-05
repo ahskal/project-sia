@@ -862,15 +862,15 @@
     },
     "ToolGripTransform": {
       "Rotation": {
-        "X": -0.478817865,
-        "Y": 0.484810912,
-        "Z": -0.486219193,
-        "W": -0.547067390
+        "X": 0,
+        "Y": 0,
+        "Z": 0.7071067811865476,
+        "W": 0.7071067811865476
       },
       "Translation": {
         "X": 0,
-        "Y": 0,
-        "Z": -16.5
+        "Y": 9,
+        "Z": 20
       },
       "Scale3D": {
         "X": 0.55,
@@ -908,13 +908,13 @@
       "Rotation": {
         "X": 0,
         "Y": 0,
-        "Z": 0,
-        "W": 1
+        "Z": 0.7071067811865476,
+        "W": 0.7071067811865476
       },
       "Translation": {
         "X": 0,
-        "Y": 0,
-        "Z": 0
+        "Y": 3,
+        "Z": 20
       },
       "Scale3D": {
         "X": 0.55,
@@ -946,19 +946,19 @@
     },
     "AssetData": {
       "Icon": "/Game/50_Stylized_Icons/Textures/T_Whetstone.T_Whetstone",
-      "Mesh": "/Game/Sia/Harvesting/Tools/Pickaxes/SM_Pickaxe.SM_Pickaxe"
+      "Mesh": "/Game/Sia/Harvesting/Tools/Hoes/SM_Hoe.SM_Hoe"
     },
     "ToolGripTransform": {
       "Rotation": {
         "X": 0,
         "Y": 0,
-        "Z": 0,
-        "W": 1
+        "Z": 0.7071067811865476,
+        "W": 0.7071067811865476
       },
       "Translation": {
         "X": 0,
-        "Y": 0,
-        "Z": 0
+        "Y": 3,
+        "Z": 20
       },
       "Scale3D": {
         "X": 0.55,
@@ -990,19 +990,19 @@
     },
     "AssetData": {
       "Icon": "",
-      "Mesh": "/Game/Sia/Harvesting/Tools/Hoes/SM_Hoe.SM_Hoe"
+      "Mesh": "/Game/Sia/Harvesting/Tools/Pickaxes/SM_Pickaxe.SM_Pickaxe"
     },
     "ToolGripTransform": {
       "Rotation": {
         "X": 0,
         "Y": 0,
-        "Z": 0,
-        "W": 1
+        "Z": 0.7071067811865476,
+        "W": 0.7071067811865476
       },
       "Translation": {
         "X": 0,
-        "Y": 0,
-        "Z": 0
+        "Y": 13,
+        "Z": 20
       },
       "Scale3D": {
         "X": 0.55,
@@ -1040,13 +1040,13 @@
       "Rotation": {
         "X": 0,
         "Y": 0,
-        "Z": 0,
-        "W": 1
+        "Z": 0.7071067811865476,
+        "W": 0.7071067811865476
       },
       "Translation": {
         "X": 0,
-        "Y": 0,
-        "Z": 0
+        "Y": 3,
+        "Z": 20
       },
       "Scale3D": {
         "X": 0.55,
