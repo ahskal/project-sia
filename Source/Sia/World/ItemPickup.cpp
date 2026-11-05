@@ -5,6 +5,7 @@
 #include "Components/TextRenderComponent.h"
 #include "Data/ItemDataStructs.h"
 #include "Engine/StaticMesh.h"
+#include "Engine/World.h"
 #include "UObject/ConstructorHelpers.h"
 
 AItemPickup::AItemPickup()
@@ -54,6 +55,35 @@ void AItemPickup::RefreshVisuals()
 void AItemPickup::RefreshForInventoryDrop()
 {
     RefreshVisuals();
+    PlaceOnGround();
+}
+
+void AItemPickup::PlaceOnGround()
+{
+    UWorld* World = GetWorld();
+    if (!World || !ItemMesh) return;
+
+    const FVector TraceStart = GetActorLocation() + FVector(0.f, 0.f, 100.f);
+    const FVector TraceEnd = GetActorLocation() - FVector(0.f, 0.f, 300.f);
+    FCollisionObjectQueryParams ObjectTypes;
+    ObjectTypes.AddObjectTypesToQuery(ECC_WorldStatic);
+    FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(ItemPickupGroundPlacement), false, this);
+    TArray<FHitResult> Hits;
+    World->LineTraceMultiByObjectType(Hits, TraceStart, TraceEnd, ObjectTypes, QueryParams);
+
+    const FHitResult* Ground = Hits.FindByPredicate([](const FHitResult& Hit)
+    {
+        return Hit.ImpactNormal.Z >= 0.5f;
+    });
+    if (!Ground) return;
+
+    ItemMesh->UpdateBounds();
+    const float MeshBottomOffset = ItemMesh->GetStaticMesh()
+        ? ItemMesh->Bounds.GetBox().Min.Z - GetActorLocation().Z
+        : 0.f;
+    FVector GroundedLocation = GetActorLocation();
+    GroundedLocation.Z = Ground->ImpactPoint.Z - MeshBottomOffset;
+    SetActorLocation(GroundedLocation, false, nullptr, ETeleportType::TeleportPhysics);
 }
 
 int32 AItemPickup::TryPickup(ABaseCharacter* Character)

@@ -8,9 +8,11 @@
 #include "InventoryWidget.h"
 #include "CombatHUDWidget.h"
 #include "Components/Border.h"
+#include "Components/BoxComponent.h"
 #include "BaseCharacter.h"
 #include "World/ItemPickup.h"
 #include "Engine/World.h"
+#include "EngineUtils.h"
 #include "Engine/DamageEvents.h"
 #include "UObject/StrongObjectPtr.h"
 #include "UObject/UnrealType.h"
@@ -211,6 +213,44 @@ bool FInventoryPickupTest::RunTest(const FString&)
     TestTrue(TEXT("last potion used"), Inv->UseItem(0, Message));
     TestEqual(TEXT("healing capped by max health"), Character->GetHealth(), 100.f);
     TestNull(TEXT("empty stack removed"), Inv->GetItemAt(0));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FInventoryDropPlacementTest, "Sia.Inventory.DropPlacementOnGround", InventoryTests::Flags)
+bool FInventoryDropPlacementTest::RunTest(const FString&)
+{
+    UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
+    if (!TestNotNull(TEXT("isolated test world"), World)) return false;
+    ON_SCOPE_EXIT { World->DestroyWorld(false); };
+
+    AActor* FloorActor = World->SpawnActor<AActor>();
+    if (!TestNotNull(TEXT("floor actor"), FloorActor)) return false;
+    auto* Floor = NewObject<UBoxComponent>(FloorActor);
+    FloorActor->SetRootComponent(Floor);
+    Floor->SetBoxExtent(FVector(500.f, 500.f, 10.f));
+    Floor->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    Floor->SetCollisionObjectType(ECC_WorldStatic);
+    Floor->SetCollisionResponseToAllChannels(ECR_Block);
+    Floor->RegisterComponent();
+    FloorActor->SetActorLocation(FVector(120.f, 0.f, -10.f));
+
+    auto* Character = World->SpawnActor<ABaseCharacter>();
+    if (!TestNotNull(TEXT("character"), Character)) return false;
+    UInventoryComponent* Inventory = Character->GetInventory();
+    Inventory->InitializeInventory(InventoryTests::Table());
+    Inventory->TryAddItem(TEXT("Apple"), 1);
+
+    TestTrue(TEXT("drop spawns a pickup"), Inventory->DropItemFromSlot(0, 1));
+    AItemPickup* DroppedPickup = nullptr;
+    for (TActorIterator<AItemPickup> It(World); It; ++It)
+    {
+        DroppedPickup = *It;
+        break;
+    }
+    if (!TestNotNull(TEXT("dropped pickup"), DroppedPickup)) return false;
+    TestTrue(TEXT("pickup rests on the floor with its fallback sphere"),
+        FMath::IsNearlyEqual(DroppedPickup->GetActorLocation().Z, 15.f, 1.f));
+    TestEqual(TEXT("drop removes the item from inventory"), Inventory->GetTotalQuantity(TEXT("Apple")), 0);
     return true;
 }
 

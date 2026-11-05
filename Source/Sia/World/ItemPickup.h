@@ -29,4 +29,5 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item") TObjectPtr<UTextRenderComponent> Label;
 private:
     void RefreshVisuals();
+    void PlaceOnGround();
 };
