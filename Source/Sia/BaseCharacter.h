@@ -11,6 +11,8 @@ class USpringArmComponent;
 class UCharacterAnimationComponent;
 class UBoxComponent;
 class UInventoryComponent;
+class UStaticMeshComponent;
+enum class EHarvestToolType : uint8;
 
 UCLASS()
 class SIA_API ABaseCharacter : public ACharacter
@@ -48,8 +50,12 @@ public:
 
 protected:
     virtual void BeginPlay() override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
     TObjectPtr<UInventoryComponent> InventoryComponent;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory|Equipment")
+    TObjectPtr<UStaticMeshComponent> HeldToolMesh;
 
     // Camera
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
@@ -79,8 +85,19 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
     TObjectPtr<UBoxComponent> AttackHitbox;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+    TObjectPtr<UBoxComponent> LeftAttackHitbox;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
     float AttackCooldown = 0.8f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat|Combo",
+        meta = (ClampMin = "0.0", Units = "s"))
+    float AttackHitboxStartTime = 0.2f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat|Combo",
+        meta = (ClampMin = "0.01", Units = "s"))
+    float AttackHitboxDuration = 0.35f;
 
     UPROPERTY(BlueprintReadOnly, Category = "Attack")
     bool bIsAttack = false;
@@ -112,6 +129,13 @@ private:
 
     void ResetAttack();
     void ResetDash();
+    void StartAttack();
+    void FinishAttack();
+    void ActivateHitbox(UBoxComponent* Hitbox);
+    UFUNCTION()
+    void OnEquipmentChanged();
+    void RefreshHeldToolVisual();
+    EHarvestToolType GetEquippedHarvestToolType() const;
 
     TSet<TWeakObjectPtr<AActor>> HitActorsThisAttack;
 
@@ -119,7 +143,12 @@ private:
 
     bool bCanAttack = true;
     bool bCanDash = true;
+    bool bAttackQueued = false;
+    int32 CurrentComboStep = 0;
 
     FTimerHandle AttackCooldownHandle;
+    FTimerHandle AttackFinishHandle;
+    FTimerHandle AttackHitboxOpenHandle;
+    FTimerHandle AttackHitboxCloseHandle;
     FTimerHandle DashCooldownHandle;
 };

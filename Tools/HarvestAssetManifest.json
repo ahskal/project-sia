@@ -1,0 +1,34 @@
+{
+  "feature": "Sia resource harvesting",
+  "placeable_blueprints": [
+    "/Game/Sia/Harvesting/Trees/BP_TreeResource.BP_TreeResource",
+    "/Game/Sia/Harvesting/Rocks/BP_RockResource.BP_RockResource"
+  ],
+  "profiles": [
+    "/Game/Sia/Harvesting/Trees/Profiles/DA_TreeHarvestProfile.DA_TreeHarvestProfile",
+    "/Game/Sia/Harvesting/Rocks/Profiles/DA_RockHarvestProfile.DA_RockHarvestProfile"
+  ],
+  "asset_groups": {
+    "tools": "/Game/Sia/Harvesting/Tools/{Axes,Hammers,Pickaxes,Hoes,Shovels}",
+    "trees": "/Game/Sia/Harvesting/Trees",
+    "rocks": "/Game/Sia/Harvesting/Rocks/Fragments/SM_RockGroup01",
+    "tree_source": "/Game/STF/Pack03-LandscapePro/Environment/Foliage/GreenTrees/tree01/SM_green-tree01",
+    "rock_source": "/Game/STF/Pack03-LandscapePro/Environment/Foliage/RocksSmall/SM_RockGroup01",
+    "tool_source": "/Game/Fab/Survival_Game_Tool_Pack/survival_game_tool_pack_free_agustin_honnun/StaticMeshes/survival_game_tool_pack_free_agustin_honnun",
+    "log_and_chip_source": "/Game/Mega_Survival_Tools/Models/SM_Log",
+    "stone_pickup_piece": "/Game/Sia/Harvesting/Rocks/Fragments/SM_RockGroup01/SM_RockGroup01_Piece04.SM_RockGroup01_Piece04"
+  },
+  "defaults": {
+    "tree": {
+      "health": 100,
+      "axe_multiplier": 1.5,
+      "apple_probability": 0.18
+    },
+    "rock": {
+      "health": 80,
+      "pickaxe_multiplier": 1.5,
+      "edge_piece_order": "outside-in"
+    },
+    "rock_piece_ground_offset": "each piece half-height"
+  }
+}

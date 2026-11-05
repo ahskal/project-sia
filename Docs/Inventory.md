@@ -13,7 +13,7 @@ Ria와 CSTutorial-master의 데이터 정의, 런타임 스택, 변경 알림 �
 
 ## 데이터 테이블
 
-행 이름이 아이템 ID다. 사과·나무·돌 등 기본 아이템 10종과 머리·몸통·손·다리·발·목걸이·장신구·반지 방어구 8종을 등록했다. 무기는 `ItemType=Weapon`, `EquipmentSlot=Weapon`으로 데이터 행을 추가한다.
+행 이름이 아이템 ID다. 원본 기본 아이템 10종과 방어구 8종에 통나무 1종과 도구 5종을 추가했다. 현재 데이터 테이블은 24개 행이다. 도구는 `ItemType=Weapon`, `EquipmentSlot=Weapon`으로 등록한다.
 
 | 필드 | 용도 |
 | --- | --- |
@@ -56,7 +56,7 @@ BP에서는 `Get Inventory → Try Add Item`, `Remove From Slot`, `Remove Item`,
 `Move Or Merge`, `Split Stack`, `Assign Quick Slot`, `Use Quick Slot`을 호출할 수 있다.
 
 개발 콘솔에서 `GiveItem HealthPotion 3` 또는 `GiveItem Apple 25`로 연동을 확인할 수 있다.
-무기 장착, 장비 능력치의 전투 반영, 저장/불러오기, 멀티플레이 복제는 별도 기능이다.
+도끼, 망치, 곡괭이, 괭이, 삽은 `Weapon` 장비 칸을 사용한다. 장착 도구는 캐릭터의 오른손에 표시된다. 도끼는 나무에, 곡괭이는 바위에 추가 피해를 준다. 일반 무기 능력치 반영, 저장/불러오기, 멀티플레이 복제는 별도 기능이다.
 
 퀵슬롯은 같은 아이템의 모든 인벤토리 묶음을 합산해 수량을 표시한다. Escape로 드래그를 취소하면 아이템은 유지된다.
 버리기 확인 시 처음 선택한 아이템이 해당 슬롯에 남아 있는지 검사하며, 인벤토리 재연결 시 확인창을 닫는다.

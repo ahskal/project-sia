@@ -5,11 +5,16 @@
 #include "GameFramework/DamageType.h"
 #include "CharacterAnimationComponent.h"
 #include "Components/InventoryComponent.h"
+#include "Data/HarvestDataTypes.h"
+#include "Data/ItemDataStructs.h"
+#include "Items/ItemBase.h"
+#include "World/HarvestableResource.h"
 
 #include "Camera/CameraComponent.h"
 #include "Animation/AnimInstance.h"
 #include "Components/BoxComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/RootMotionSource.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -22,6 +27,11 @@ ABaseCharacter::ABaseCharacter()
 {
     PrimaryActorTick.bCanEverTick = false;
     InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
+    HeldToolMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HeldToolMesh"));
+    HeldToolMesh->SetupAttachment(GetMesh(), TEXT("hand_r"));
+    HeldToolMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    HeldToolMesh->SetGenerateOverlapEvents(false);
+    HeldToolMesh->SetHiddenInGame(true);
 
     // Character Movement
     bUseControllerRotationYaw = false;
@@ -105,6 +115,24 @@ ABaseCharacter::ABaseCharacter()
         ECR_Overlap
     );
 
+    LeftAttackHitbox = CreateDefaultSubobject<UBoxComponent>(TEXT("LeftAttackHitbox"));
+    LeftAttackHitbox->SetupAttachment(GetMesh(), TEXT("hand_l"));
+    LeftAttackHitbox->SetRelativeLocation(FVector(8.f, 0.f, 0.f));
+    LeftAttackHitbox->SetBoxExtent(FVector(12.f, 8.f, 8.f));
+    LeftAttackHitbox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    LeftAttackHitbox->SetHiddenInGame(true);
+    LeftAttackHitbox->SetGenerateOverlapEvents(true);
+    LeftAttackHitbox->bDrawOnlyIfSelected = false;
+    LeftAttackHitbox->ShapeColor = FColor::Red;
+    LeftAttackHitbox->OnComponentBeginOverlap.AddDynamic(
+        this, &ABaseCharacter::OnAttackHitboxOverlap);
+    LeftAttackHitbox->SetCollisionObjectType(ECC_Pawn);
+    LeftAttackHitbox->SetCollisionResponseToAllChannels(ECR_Ignore);
+    LeftAttackHitbox->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
+    LeftAttackHitbox->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+    LeftAttackHitbox->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Overlap);
+    LeftAttackHitbox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+
 }
 
 float ABaseCharacter::RestoreHealth(float Amount)
@@ -163,6 +191,70 @@ void ABaseCharacter::BeginPlay()
     GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
     GetCharacterMovement()->JumpZVelocity = JumpZVelocity;
 
+    if (InventoryComponent)
+    {
+        InventoryComponent->OnInventoryChanged.AddUniqueDynamic(this, &ABaseCharacter::OnEquipmentChanged);
+        RefreshHeldToolVisual();
+    }
+
+}
+
+void ABaseCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    if (InventoryComponent)
+        InventoryComponent->OnInventoryChanged.RemoveDynamic(this, &ABaseCharacter::OnEquipmentChanged);
+    Super::EndPlay(EndPlayReason);
+}
+
+void ABaseCharacter::OnEquipmentChanged()
+{
+    RefreshHeldToolVisual();
+}
+
+EHarvestToolType ABaseCharacter::GetEquippedHarvestToolType() const
+{
+    const UItemBase* EquippedTool = InventoryComponent
+        ? InventoryComponent->GetEquippedItem(EEquipmentSlot::Weapon) : nullptr;
+    return EquippedTool ? EquippedTool->GetData().HarvestToolType : EHarvestToolType::None;
+}
+
+void ABaseCharacter::RefreshHeldToolVisual()
+{
+    if (!HeldToolMesh || !GetMesh())
+        return;
+
+    const UItemBase* EquippedTool = InventoryComponent
+        ? InventoryComponent->GetEquippedItem(EEquipmentSlot::Weapon) : nullptr;
+    const FItemData* ToolData = EquippedTool ? &EquippedTool->GetData() : nullptr;
+    const bool bHasTool = ToolData && ToolData->HarvestToolType != EHarvestToolType::None;
+    if (!bHasTool)
+    {
+        HeldToolMesh->SetStaticMesh(nullptr);
+        HeldToolMesh->SetHiddenInGame(true);
+        return;
+    }
+
+    if (!GetMesh()->DoesSocketExist(TEXT("hand_r")))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Character '%s' cannot attach a harvesting tool: hand_r socket/bone is missing."),
+            *GetName());
+        HeldToolMesh->SetHiddenInGame(true);
+        return;
+    }
+
+    UStaticMesh* ToolMesh = ToolData->AssetData.Mesh.LoadSynchronous();
+    if (!ToolMesh)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Equipped tool '%s' has no loadable mesh."), *EquippedTool->GetItemId().ToString());
+        HeldToolMesh->SetHiddenInGame(true);
+        return;
+    }
+
+    HeldToolMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+        TEXT("hand_r"));
+    HeldToolMesh->SetStaticMesh(ToolMesh);
+    HeldToolMesh->SetRelativeTransform(ToolData->ToolGripTransform);
+    HeldToolMesh->SetHiddenInGame(false);
 }
 
 // =======================================
@@ -265,29 +357,78 @@ void ABaseCharacter::ResetDash()
 
 void ABaseCharacter::Attack()
 {
-    if (Health <= 0.f || !AnimationComponent || !bCanAttack || bIsAttack)
+    if (Health <= 0.f || !AnimationComponent)
         return;
 
+    if (bIsAttack)
+    {
+        bAttackQueued = true;
+        return;
+    }
+    if (!bCanAttack)
+        return;
+
+    StartAttack();
+}
+
+void ABaseCharacter::StartAttack()
+{
     HitActorsThisAttack.Reset();
+    bAttackQueued = false;
     bIsAttack = true;
     bCanAttack = false;
 
-    // Hitbox activation is controlled by animation notifies.
+    const float AttackDuration = AnimationComponent->PlayComboAttack(CurrentComboStep);
+    if (!FMath::IsFinite(AttackDuration) || AttackDuration <= 0.f)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Character '%s' could not play combo attack %d."),
+            *GetName(), CurrentComboStep + 1);
+        bIsAttack = false;
+        bCanAttack = true;
+        CurrentComboStep = 0;
+        return;
+    }
 
-    GetWorldTimerManager().SetTimer(
-        AttackCooldownHandle,
-        this,
-        &ABaseCharacter::ResetAttack,
-        FMath::Max(AttackCooldown, 0.01f),
-        false
-    );
+    const int32 AttackCount = AnimationComponent->ComboAttacks.Num();
+    CurrentComboStep = AttackCount > 0 ? (CurrentComboStep + 1) % AttackCount : 0;
+    const float WindowStart = FMath::Clamp(AttackHitboxStartTime, 0.f, AttackDuration);
+    const float WindowEnd = FMath::Clamp(WindowStart + FMath::Max(AttackHitboxDuration, 0.01f),
+        WindowStart + 0.01f, AttackDuration);
+
+    GetWorldTimerManager().SetTimer(AttackHitboxOpenHandle, this,
+        &ABaseCharacter::EnableAttackHitbox, WindowStart, false);
+    GetWorldTimerManager().SetTimer(AttackHitboxCloseHandle, this,
+        &ABaseCharacter::DisableAttackHitbox, WindowEnd, false);
+    GetWorldTimerManager().SetTimer(AttackFinishHandle, this,
+        &ABaseCharacter::FinishAttack, AttackDuration, false);
+    GetWorldTimerManager().SetTimer(AttackCooldownHandle, this,
+        &ABaseCharacter::ResetAttack, FMath::Max(FMath::Max(AttackCooldown, 0.f), AttackDuration), false);
+}
+
+void ABaseCharacter::FinishAttack()
+{
+    DisableAttackHitbox();
+    if (AnimationComponent)
+        AnimationComponent->StopComboAttack();
+    bIsAttack = false;
+
+    if (bAttackQueued && Health > 0.f)
+    {
+        StartAttack();
+        return;
+    }
+
+    bAttackQueued = false;
+    CurrentComboStep = 0;
+    if (!GetWorldTimerManager().IsTimerActive(AttackCooldownHandle))
+        bCanAttack = true;
 }
 
 void ABaseCharacter::ResetAttack()
 {
+    if (bIsAttack)
+        return;
     bCanAttack = true;
-    bIsAttack = false;
-
     DisableAttackHitbox();
 }
 
@@ -297,18 +438,20 @@ void ABaseCharacter::ResetAttack()
 
 void ABaseCharacter::EnableAttackHitbox()
 {
-    if (!IsValid(AttackHitbox))
-        return;
+	ActivateHitbox(AttackHitbox);
+	ActivateHitbox(LeftAttackHitbox);
+}
 
-    AttackHitbox->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Overlap);
-    AttackHitbox->SetCollisionEnabled(
-        ECollisionEnabled::QueryOnly
-    );
-    AttackHitbox->SetHiddenInGame(false);
-    if (GEngine)
-    {
-        GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, TEXT("Attack Hitbox: ON"));
-    }
+void ABaseCharacter::ActivateHitbox(UBoxComponent* Hitbox)
+{
+	if (!IsValid(Hitbox))
+		return;
+
+	Hitbox->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Overlap);
+	Hitbox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	Hitbox->SetHiddenInGame(false);
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, TEXT("Attack Hitboxes: ON"));
 
     // Explicit query also detects geometry that does not generate overlap events.
     FCollisionObjectQueryParams ObjectTypes;
@@ -320,9 +463,9 @@ void ABaseCharacter::EnableAttackHitbox()
     QueryParams.AddIgnoredActor(this);
     TArray<FOverlapResult> Results;
     GetWorld()->OverlapMultiByObjectType(
-        Results, AttackHitbox->GetComponentLocation(),
-        AttackHitbox->GetComponentQuat(), ObjectTypes,
-        FCollisionShape::MakeBox(AttackHitbox->GetScaledBoxExtent()), QueryParams);
+		Results, Hitbox->GetComponentLocation(),
+		Hitbox->GetComponentQuat(), ObjectTypes,
+		FCollisionShape::MakeBox(Hitbox->GetScaledBoxExtent()), QueryParams);
 
     TSet<AActor*> ReportedActors;
     for (const FOverlapResult& Result : Results)
@@ -331,7 +474,7 @@ void ABaseCharacter::EnableAttackHitbox()
         if (IsValid(HitActor) && !ReportedActors.Contains(HitActor))
         {
             ReportedActors.Add(HitActor);
-            OnAttackHitboxOverlap(AttackHitbox, HitActor,
+			OnAttackHitboxOverlap(Hitbox, HitActor,
                 Result.GetComponent(), INDEX_NONE, false, FHitResult());
         }
     }
@@ -339,17 +482,15 @@ void ABaseCharacter::EnableAttackHitbox()
 
 void ABaseCharacter::DisableAttackHitbox()
 {
-    if (!IsValid(AttackHitbox))
-        return;
-
-    AttackHitbox->SetCollisionEnabled(
-        ECollisionEnabled::NoCollision
-    );
-    AttackHitbox->SetHiddenInGame(true);
-    if (GEngine)
+	for (UBoxComponent* Hitbox : { AttackHitbox.Get(), LeftAttackHitbox.Get() })
     {
-        GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, TEXT("Attack Hitbox: OFF"));
+		if (!IsValid(Hitbox))
+			continue;
+		Hitbox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		Hitbox->SetHiddenInGame(true);
     }
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, TEXT("Attack Hitboxes: OFF"));
 }
 
 void ABaseCharacter::OnAttackHitboxOverlap(
@@ -357,8 +498,10 @@ void ABaseCharacter::OnAttackHitboxOverlap(
     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
     bool bFromSweep, const FHitResult& SweepResult)
 {
-    if (!bIsAttack || !IsValid(AttackHitbox)
-        || AttackHitbox->GetCollisionEnabled() == ECollisionEnabled::NoCollision
+    UPrimitiveComponent* AttackSource = IsValid(OverlappedComponent)
+        ? OverlappedComponent : AttackHitbox.Get();
+    if (!bIsAttack || !IsValid(AttackSource)
+        || AttackSource->GetCollisionEnabled() == ECollisionEnabled::NoCollision
         || !IsValid(OtherActor) || OtherActor == this)
         return;
 
@@ -380,7 +523,7 @@ void ABaseCharacter::OnAttackHitboxOverlap(
             if (!Component->IsSimulatingPhysics())
                 continue;
             const double Distance = FVector::DistSquared(
-                Component->Bounds.Origin, AttackHitbox->GetComponentLocation());
+                Component->Bounds.Origin, AttackSource->GetComponentLocation());
             if (Distance < NearestDistance)
             {
                 NearestDistance = Distance;
@@ -390,9 +533,10 @@ void ABaseCharacter::OnAttackHitboxOverlap(
     }
 
     ACharacter* HitCharacter = Cast<ACharacter>(OtherActor);
+    AHarvestableResource* Resource = Cast<AHarvestableResource>(OtherActor);
     const bool bDamageable = OtherActor->CanBeDamaged()
         && (Cast<APawn>(OtherActor) || OtherActor->ActorHasTag(TEXT("Damageable")));
-    if (!PhysicsComponent && !HitCharacter && !bDamageable)
+    if (!PhysicsComponent && !HitCharacter && !bDamageable && !Resource)
         return;
 
     HitActorsThisAttack.Add(OtherActor);
@@ -401,9 +545,58 @@ void ABaseCharacter::OnAttackHitboxOverlap(
     if (Direction.IsNearlyZero())
         Direction = GetActorForwardVector().GetSafeNormal2D();
 
+    if (Resource)
+    {
+        FHarvestHitContext Hit;
+        Hit.BaseDamage = FMath::Max(0.f, AttackDamage);
+        Hit.ToolType = GetEquippedHarvestToolType();
+        Hit.AttackDirection = Direction;
+        Hit.ImpactNormal = FVector::ZeroVector;
+        Hit.Attacker = this;
+
+        bool bHasImpactPoint = false;
+        if (bFromSweep && (SweepResult.bBlockingHit || !SweepResult.ImpactPoint.IsNearlyZero()))
+        {
+            Hit.ImpactPoint = SweepResult.ImpactPoint;
+            Hit.ImpactNormal = SweepResult.ImpactNormal.GetSafeNormal();
+            bHasImpactPoint = true;
+        }
+        else if (IsValid(OtherComp))
+        {
+            FVector ClosestPoint = FVector::ZeroVector;
+            if (OtherComp->GetClosestPointOnCollision(
+                    AttackSource->GetComponentLocation(), ClosestPoint, NAME_None) >= 0.f)
+            {
+                Hit.ImpactPoint = ClosestPoint;
+                bHasImpactPoint = true;
+            }
+            else
+            {
+                Hit.ImpactPoint = OtherComp->Bounds.GetBox().GetClosestPointTo(
+                    AttackSource->GetComponentLocation());
+                bHasImpactPoint = true;
+            }
+        }
+
+        if (Hit.ImpactNormal.IsNearlyZero())
+            Hit.ImpactNormal = bHasImpactPoint
+                ? (Hit.ImpactPoint - OtherActor->GetActorLocation()).GetSafeNormal()
+                : -Direction;
+        if (Hit.ImpactNormal.IsNearlyZero())
+            Hit.ImpactNormal = FVector::UpVector;
+
+        const float AppliedDamage = Resource->ReceiveHarvestHit(Hit);
+        if (AppliedDamage > 0.f)
+        {
+            if (auto* PC = Cast<ABasePlayerController>(GetController()))
+                PC->ShowDamageNumber(AppliedDamage, bHasImpactPoint ? Hit.ImpactPoint : OtherActor->GetActorLocation());
+        }
+        return;
+    }
+
     if (PhysicsComponent && AttackImpulse > 0.f)
     {
-        FVector ImpactPoint = AttackHitbox->GetComponentLocation();
+        FVector ImpactPoint = AttackSource->GetComponentLocation();
         if (bFromSweep && !SweepResult.ImpactPoint.IsNearlyZero())
             ImpactPoint = SweepResult.ImpactPoint;
         else

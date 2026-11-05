@@ -1,0 +1,83 @@
+{
+  "source": "/Game/STF/Pack03-LandscapePro/Environment/Foliage/RocksSmall/SM_RockGroup01",
+  "source_component_count": 4,
+  "source_materials": [
+    "/Game/STF/Pack03-LandscapePro/Environment/Foliage/RocksSmall/MI_smallRocks_material_Inst.MI_smallRocks_material_Inst"
+  ],
+  "edge_order": "descending distance from the group bounds center; independent of hit point",
+  "stone_pickup_asset": "/Game/Sia/Harvesting/Rocks/Fragments/SM_RockGroup01/SM_RockGroup01_Piece04.SM_RockGroup01_Piece04",
+  "pieces": [
+    {
+      "asset": "/Game/Sia/Harvesting/Rocks/Fragments/SM_RockGroup01/SM_RockGroup01_Piece01.SM_RockGroup01_Piece01",
+      "source": "/Game/STF/Pack03-LandscapePro/Environment/Foliage/RocksSmall/SM_RockGroup01",
+      "relative_location_cm": [
+        10.092409133911133,
+        -26.070578575134277,
+        -0.0
+      ],
+      "bounds_extent_cm": [
+        4.783235549926758,
+        4.54654598236084,
+        5.371020793914795
+      ],
+      "vertices": 38,
+      "edge_order": 1,
+      "distance_from_group_center_cm": 31.82767537389776,
+      "bounding_box_volume_cm3": 934.4373232683588
+    },
+    {
+      "asset": "/Game/Sia/Harvesting/Rocks/Fragments/SM_RockGroup01/SM_RockGroup01_Piece02.SM_RockGroup01_Piece02",
+      "source": "/Game/STF/Pack03-LandscapePro/Environment/Foliage/RocksSmall/SM_RockGroup01",
+      "relative_location_cm": [
+        -11.95895791053772,
+        26.111042976379395,
+        -0.0
+      ],
+      "bounds_extent_cm": [
+        4.556833028793335,
+        5.739838600158691,
+        4.610635757446289
+      ],
+      "vertices": 36,
+      "edge_order": 2,
+      "distance_from_group_center_cm": 26.284505033555266,
+      "bounding_box_volume_cm3": 964.7473562132874
+    },
+    {
+      "asset": "/Game/Sia/Harvesting/Rocks/Fragments/SM_RockGroup01/SM_RockGroup01_Piece03.SM_RockGroup01_Piece03",
+      "source": "/Game/STF/Pack03-LandscapePro/Environment/Foliage/RocksSmall/SM_RockGroup01",
+      "relative_location_cm": [
+        -30.39256477355957,
+        -2.966407001018524,
+        8.311430811882019
+      ],
+      "bounds_extent_cm": [
+        5.467851638793945,
+        4.845812618732452,
+        4.868354916572571
+      ],
+      "vertices": 38,
+      "edge_order": 3,
+      "distance_from_group_center_cm": 24.258043842681555,
+      "bounding_box_volume_cm3": 1031.9426394259397
+    },
+    {
+      "asset": "/Game/Sia/Harvesting/Rocks/Fragments/SM_RockGroup01/SM_RockGroup01_Piece04.SM_RockGroup01_Piece04",
+      "source": "/Game/STF/Pack03-LandscapePro/Environment/Foliage/RocksSmall/SM_RockGroup01",
+      "relative_location_cm": [
+        16.116846561431885,
+        5.532995715737343,
+        2.384185791015625e-07
+      ],
+      "bounds_extent_cm": [
+        6.092818737030029,
+        5.218121036887169,
+        5.545883893966675
+      ],
+      "vertices": 40,
+      "edge_order": 4,
+      "distance_from_group_center_cm": 23.771471925584404,
+      "bounding_box_volume_cm3": 1410.5652047443532
+    }
+  ]
+}

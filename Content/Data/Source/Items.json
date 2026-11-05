@@ -22,7 +22,26 @@
       "Icon": "/Game/FoodArcadeIcon/T_Food_287.T_Food_287",
       "Mesh": "/Game/OWD_Fruit_Vegetable/Meshes/SM_Apple.SM_Apple"
     },
-    "EquipmentSlot": "None"
+    "EquipmentSlot": "None",
+    "HarvestToolType": "None",
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
+    }
   },
   {
     "Name": "Wood",
@@ -47,7 +66,26 @@
       "Icon": "/Game/50_Stylized_Icons/Textures/T_Firewood.T_Firewood",
       "Mesh": "/Game/Mega_Survival_Tools/Models/SM_FIREWOOD.SM_FIREWOOD"
     },
-    "EquipmentSlot": "None"
+    "EquipmentSlot": "None",
+    "HarvestToolType": "None",
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
+    }
   },
   {
     "Name": "Stone",
@@ -70,9 +108,28 @@
     },
     "AssetData": {
       "Icon": "/Game/50_Stylized_Icons/Textures/T_Whetstone.T_Whetstone",
-      "Mesh": ""
+      "Mesh": "/Game/Sia/Harvesting/Rocks/Fragments/SM_RockGroup01/SM_RockGroup01_Piece04.SM_RockGroup01_Piece04"
     },
-    "EquipmentSlot": "None"
+    "EquipmentSlot": "None",
+    "HarvestToolType": "None",
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
+    }
   },
   {
     "Name": "Crystal",
@@ -97,7 +154,26 @@
       "Icon": "/Game/50_Stylized_Icons/Textures/T_emerald_gem_01.T_emerald_gem_01",
       "Mesh": "/Game/AncientTreasures/Meshes/SM_Gems_01a.SM_Gems_01a"
     },
-    "EquipmentSlot": "None"
+    "EquipmentSlot": "None",
+    "HarvestToolType": "None",
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
+    }
   },
   {
     "Name": "Herb",
@@ -122,7 +198,26 @@
       "Icon": "/Game/50_Stylized_Icons/Textures/T_herbs_Basil.T_herbs_Basil",
       "Mesh": ""
     },
-    "EquipmentSlot": "None"
+    "EquipmentSlot": "None",
+    "HarvestToolType": "None",
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
+    }
   },
   {
     "Name": "Mushroom",
@@ -147,7 +242,26 @@
       "Icon": "/Game/50_Stylized_Icons/Textures/T_Oyster_mushroom.T_Oyster_mushroom",
       "Mesh": ""
     },
-    "EquipmentSlot": "None"
+    "EquipmentSlot": "None",
+    "HarvestToolType": "None",
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
+    }
   },
   {
     "Name": "Meat",
@@ -172,7 +286,26 @@
       "Icon": "/Game/FoodArcadeIcon/T_Food_1.T_Food_1",
       "Mesh": ""
     },
-    "EquipmentSlot": "None"
+    "EquipmentSlot": "None",
+    "HarvestToolType": "None",
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
+    }
   },
   {
     "Name": "Rope",
@@ -197,7 +330,26 @@
       "Icon": "",
       "Mesh": "/Game/Mega_Survival_Tools/Models/SM_Rope.SM_Rope"
     },
-    "EquipmentSlot": "None"
+    "EquipmentSlot": "None",
+    "HarvestToolType": "None",
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
+    }
   },
   {
     "Name": "HealthPotion",
@@ -222,7 +374,26 @@
       "Icon": "/Game/Items/Icons/T_HealthPotion.T_HealthPotion",
       "Mesh": ""
     },
-    "EquipmentSlot": "None"
+    "EquipmentSlot": "None",
+    "HarvestToolType": "None",
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
+    }
   },
   {
     "Name": "Bucket",
@@ -247,7 +418,26 @@
       "Icon": "/Game/Items/Icons/T_Bucket.T_Bucket",
       "Mesh": "/Game/Mega_Survival_Tools/Models/SM_Bucket.SM_Bucket"
     },
-    "EquipmentSlot": "None"
+    "EquipmentSlot": "None",
+    "HarvestToolType": "None",
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
+    }
   },
   {
     "Name": "ArmorHead",
@@ -272,6 +462,25 @@
     "AssetData": {
       "Icon": "/Game/50_Stylized_Icons/Textures/T_Falmer_helmet_with_horns_25.T_Falmer_helmet_with_horns_25",
       "Mesh": "/Game/AncientTreasures/Meshes/SM_Helmet_01a.SM_Helmet_01a"
+    },
+    "HarvestToolType": "None",
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
     }
   },
   {
@@ -297,6 +506,25 @@
     "AssetData": {
       "Icon": "/Game/50_Stylized_Icons/Textures/T_Falmer_cuirass_105.T_Falmer_cuirass_105",
       "Mesh": ""
+    },
+    "HarvestToolType": "None",
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
     }
   },
   {
@@ -322,6 +550,25 @@
     "AssetData": {
       "Icon": "/Game/50_Stylized_Icons/Textures/T_Mage_Gloves.T_Mage_Gloves",
       "Mesh": ""
+    },
+    "HarvestToolType": "None",
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
     }
   },
   {
@@ -347,6 +594,25 @@
     "AssetData": {
       "Icon": "/Game/50_Stylized_Icons/Textures/T_Falmer_Armored_cuisses_51.T_Falmer_Armored_cuisses_51",
       "Mesh": ""
+    },
+    "HarvestToolType": "None",
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
     }
   },
   {
@@ -372,6 +638,25 @@
     "AssetData": {
       "Icon": "/Game/50_Stylized_Icons/Textures/T_Falmer_armored_boots_17.T_Falmer_armored_boots_17",
       "Mesh": ""
+    },
+    "HarvestToolType": "None",
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
     }
   },
   {
@@ -397,6 +682,25 @@
     "AssetData": {
       "Icon": "/Game/50_Stylized_Icons/Textures/T_magic_fantasy_Amulet_03.T_magic_fantasy_Amulet_03",
       "Mesh": "/Game/AncientTreasures/Meshes/SM_Necklace_01a.SM_Necklace_01a"
+    },
+    "HarvestToolType": "None",
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
     }
   },
   {
@@ -422,6 +726,25 @@
     "AssetData": {
       "Icon": "/Game/50_Stylized_Icons/Textures/T_Dwarven_Earrings_14.T_Dwarven_Earrings_14",
       "Mesh": ""
+    },
+    "HarvestToolType": "None",
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
     }
   },
   {
@@ -447,6 +770,289 @@
     "AssetData": {
       "Icon": "/Game/50_Stylized_Icons/Textures/T_magic_fantasy_ring_39.T_magic_fantasy_ring_39",
       "Mesh": "/Game/AncientTreasures/Meshes/SM_Ring_01a.SM_Ring_01a"
+    },
+    "HarvestToolType": "None",
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
+    }
+  },
+  {
+    "Name": "Log",
+    "ItemType": "Material",
+    "ItemQuality": "Common",
+    "ItemStatistics": {
+      "ArmorRating": 0,
+      "DamageValue": 0,
+      "RestorationAmount": 0,
+      "SellValue": 3
+    },
+    "TextData": {
+      "DisplayName": "통나무",
+      "Description": "벌목한 나무에서 얻는 통나무입니다.",
+      "UsageText": "제작 재료"
+    },
+    "NumericData": {
+      "Weight": 1.5,
+      "MaxStackSize": 50
+    },
+    "AssetData": {
+      "Icon": "/Game/50_Stylized_Icons/Textures/T_Firewood.T_Firewood",
+      "Mesh": "/Game/Mega_Survival_Tools/Models/SM_Log.SM_Log"
+    },
+    "EquipmentSlot": "None",
+    "HarvestToolType": "None",
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
+    }
+  },
+  {
+    "Name": "Axe",
+    "ItemType": "Weapon",
+    "ItemQuality": "Common",
+    "EquipmentSlot": "Weapon",
+    "HarvestToolType": "Axe",
+    "ItemStatistics": {
+      "ArmorRating": 0,
+      "DamageValue": 10,
+      "RestorationAmount": 0,
+      "SellValue": 20
+    },
+    "TextData": {
+      "DisplayName": "도끼",
+      "Description": "자원 채집에 사용하는 도끼입니다.",
+      "UsageText": "무기 장비칸에 장착"
+    },
+    "NumericData": {
+      "Weight": 2.0,
+      "MaxStackSize": 1
+    },
+    "AssetData": {
+      "Icon": "/Game/50_Stylized_Icons/Textures/T_Falmer_Axe_74.T_Falmer_Axe_74",
+      "Mesh": "/Game/Sia/Harvesting/Tools/Axes/SM_Axe.SM_Axe"
+    },
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
+    }
+  },
+  {
+    "Name": "Hammer",
+    "ItemType": "Weapon",
+    "ItemQuality": "Common",
+    "EquipmentSlot": "Weapon",
+    "HarvestToolType": "Hammer",
+    "ItemStatistics": {
+      "ArmorRating": 0,
+      "DamageValue": 10,
+      "RestorationAmount": 0,
+      "SellValue": 20
+    },
+    "TextData": {
+      "DisplayName": "망치",
+      "Description": "자원 채집에 사용하는 망치입니다.",
+      "UsageText": "무기 장비칸에 장착"
+    },
+    "NumericData": {
+      "Weight": 2.0,
+      "MaxStackSize": 1
+    },
+    "AssetData": {
+      "Icon": "/Game/50_Stylized_Icons/Textures/T_hammer_9.T_hammer_9",
+      "Mesh": "/Game/Sia/Harvesting/Tools/Hammers/SM_Hammer.SM_Hammer"
+    },
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
+    }
+  },
+  {
+    "Name": "Pickaxe",
+    "ItemType": "Weapon",
+    "ItemQuality": "Common",
+    "EquipmentSlot": "Weapon",
+    "HarvestToolType": "Pickaxe",
+    "ItemStatistics": {
+      "ArmorRating": 0,
+      "DamageValue": 10,
+      "RestorationAmount": 0,
+      "SellValue": 20
+    },
+    "TextData": {
+      "DisplayName": "곡괭이",
+      "Description": "자원 채집에 사용하는 곡괭이입니다.",
+      "UsageText": "무기 장비칸에 장착"
+    },
+    "NumericData": {
+      "Weight": 2.0,
+      "MaxStackSize": 1
+    },
+    "AssetData": {
+      "Icon": "/Game/50_Stylized_Icons/Textures/T_Whetstone.T_Whetstone",
+      "Mesh": "/Game/Sia/Harvesting/Tools/Pickaxes/SM_Pickaxe.SM_Pickaxe"
+    },
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
+    }
+  },
+  {
+    "Name": "Hoe",
+    "ItemType": "Weapon",
+    "ItemQuality": "Common",
+    "EquipmentSlot": "Weapon",
+    "HarvestToolType": "Hoe",
+    "ItemStatistics": {
+      "ArmorRating": 0,
+      "DamageValue": 10,
+      "RestorationAmount": 0,
+      "SellValue": 20
+    },
+    "TextData": {
+      "DisplayName": "괭이",
+      "Description": "자원 채집에 사용하는 괭이입니다.",
+      "UsageText": "무기 장비칸에 장착"
+    },
+    "NumericData": {
+      "Weight": 2.0,
+      "MaxStackSize": 1
+    },
+    "AssetData": {
+      "Icon": "",
+      "Mesh": "/Game/Sia/Harvesting/Tools/Hoes/SM_Hoe.SM_Hoe"
+    },
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
+    }
+  },
+  {
+    "Name": "Shovel",
+    "ItemType": "Weapon",
+    "ItemQuality": "Common",
+    "EquipmentSlot": "Weapon",
+    "HarvestToolType": "Shovel",
+    "ItemStatistics": {
+      "ArmorRating": 0,
+      "DamageValue": 10,
+      "RestorationAmount": 0,
+      "SellValue": 20
+    },
+    "TextData": {
+      "DisplayName": "삽",
+      "Description": "자원 채집에 사용하는 삽입니다.",
+      "UsageText": "무기 장비칸에 장착"
+    },
+    "NumericData": {
+      "Weight": 2.0,
+      "MaxStackSize": 1
+    },
+    "AssetData": {
+      "Icon": "",
+      "Mesh": "/Game/Sia/Harvesting/Tools/Shovels/SM_Shovel.SM_Shovel"
+    },
+    "ToolGripTransform": {
+      "Rotation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0,
+        "W": 1
+      },
+      "Translation": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Scale3D": {
+        "X": 0.55,
+        "Y": 0.55,
+        "Z": 0.55
+      }
     }
   }
 ]

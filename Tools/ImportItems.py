@@ -16,7 +16,12 @@ for row in rows:
 table = unreal.load_asset("/Game/Data/DT_Items")
 if not isinstance(table, unreal.DataTable):
     raise RuntimeError("/Game/Data/DT_Items 데이터 테이블이 필요합니다.")
-if not table.fill_from_json_string(json.dumps(rows, ensure_ascii=False), table.get_row_struct()):
+row_struct = unreal.ItemData.static_struct()
+if table.get_row_struct() != row_struct:
+    table.set_editor_property("row_struct", row_struct)
+if not table.fill_from_json_string(json.dumps(rows, ensure_ascii=False), row_struct):
     raise RuntimeError("아이템 JSON 반영에 실패했습니다. 출력 로그를 확인하세요.")
+if table.get_row_struct() != row_struct or len(table.get_row_names()) != len(rows):
+    raise RuntimeError("아이템 데이터 테이블 행 구조 또는 행 수 검증에 실패했습니다.")
 unreal.EditorAssetLibrary.save_loaded_asset(table, only_if_is_dirty=False)
 unreal.log(f"DT_Items: {len(rows)}개 행 반영 완료")

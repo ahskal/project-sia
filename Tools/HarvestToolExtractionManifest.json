@@ -1,0 +1,112 @@
+{
+  "source": "/Game/Fab/Survival_Game_Tool_Pack/survival_game_tool_pack_free_agustin_honnun/StaticMeshes/survival_game_tool_pack_free_agustin_honnun",
+  "source_component_count": 55,
+  "grouping": "Connected mesh islands grouped by spatial X gaps over 2500.0 cm",
+  "tools": [
+    {
+      "tool": "Axe",
+      "asset": "/Game/Sia/Harvesting/Tools/Axes/SM_Axe.SM_Axe",
+      "source": "/Game/Fab/Survival_Game_Tool_Pack/survival_game_tool_pack_free_agustin_honnun/StaticMeshes/survival_game_tool_pack_free_agustin_honnun",
+      "component_count": 8,
+      "vertices": 373,
+      "bounds_min_cm": [
+        -25.368934631347656,
+        -4.965829849243164,
+        -50.64548873901367
+      ],
+      "bounds_max_cm": [
+        25.368934631347656,
+        4.965829849243164,
+        50.64548873901367
+      ],
+      "source_scale": 0.01,
+      "materials": [
+        "/Game/Fab/Survival_Game_Tool_Pack/survival_game_tool_pack_free_agustin_honnun/Materials/Tool_MAT.Tool_MAT"
+      ]
+    },
+    {
+      "tool": "Hammer",
+      "asset": "/Game/Sia/Harvesting/Tools/Hammers/SM_Hammer.SM_Hammer",
+      "source": "/Game/Fab/Survival_Game_Tool_Pack/survival_game_tool_pack_free_agustin_honnun/StaticMeshes/survival_game_tool_pack_free_agustin_honnun",
+      "component_count": 11,
+      "vertices": 325,
+      "bounds_min_cm": [
+        -19.853801727294922,
+        -9.638689994812012,
+        -49.56925582885742
+      ],
+      "bounds_max_cm": [
+        19.853801727294922,
+        9.638689994812012,
+        49.56925582885742
+      ],
+      "source_scale": 0.01,
+      "materials": [
+        "/Game/Fab/Survival_Game_Tool_Pack/survival_game_tool_pack_free_agustin_honnun/Materials/Tool_MAT.Tool_MAT"
+      ]
+    },
+    {
+      "tool": "Pickaxe",
+      "asset": "/Game/Sia/Harvesting/Tools/Pickaxes/SM_Pickaxe.SM_Pickaxe",
+      "source": "/Game/Fab/Survival_Game_Tool_Pack/survival_game_tool_pack_free_agustin_honnun/StaticMeshes/survival_game_tool_pack_free_agustin_honnun",
+      "component_count": 10,
+      "vertices": 315,
+      "bounds_min_cm": [
+        -26.030298233032227,
+        -5.1456098556518555,
+        -49.56925582885742
+      ],
+      "bounds_max_cm": [
+        26.030298233032227,
+        5.1456098556518555,
+        49.56925582885742
+      ],
+      "source_scale": 0.01,
+      "materials": [
+        "/Game/Fab/Survival_Game_Tool_Pack/survival_game_tool_pack_free_agustin_honnun/Materials/Tool_MAT.Tool_MAT"
+      ]
+    },
+    {
+      "tool": "Hoe",
+      "asset": "/Game/Sia/Harvesting/Tools/Hoes/SM_Hoe.SM_Hoe",
+      "source": "/Game/Fab/Survival_Game_Tool_Pack/survival_game_tool_pack_free_agustin_honnun/StaticMeshes/survival_game_tool_pack_free_agustin_honnun",
+      "component_count": 10,
+      "vertices": 459,
+      "bounds_min_cm": [
+        -42.05360794067383,
+        -5.05893611907959,
+        -49.56925582885742
+      ],
+      "bounds_max_cm": [
+        42.05360794067383,
+        5.05893611907959,
+        49.56925582885742
+      ],
+      "source_scale": 0.01,
+      "materials": [
+        "/Game/Fab/Survival_Game_Tool_Pack/survival_game_tool_pack_free_agustin_honnun/Materials/Tool_MAT.Tool_MAT"
+      ]
+    },
+    {
+      "tool": "Shovel",
+      "asset": "/Game/Sia/Harvesting/Tools/Shovels/SM_Shovel.SM_Shovel",
+      "source": "/Game/Fab/Survival_Game_Tool_Pack/survival_game_tool_pack_free_agustin_honnun/StaticMeshes/survival_game_tool_pack_free_agustin_honnun",
+      "component_count": 16,
+      "vertices": 336,
+      "bounds_min_cm": [
+        -16.2363224029541,
+        -3.0073812007904053,
+        -70.60306549072266
+      ],
+      "bounds_max_cm": [
+        16.2363224029541,
+        3.0073812007904053,
+        70.60306549072266
+      ],
+      "source_scale": 0.01,
+      "materials": [
+        "/Game/Fab/Survival_Game_Tool_Pack/survival_game_tool_pack_free_agustin_honnun/Materials/Tool_MAT.Tool_MAT"
+      ]
+    }
+  ]
+}

@@ -264,8 +264,8 @@ bool FInventoryDropPlacementTest::RunTest(const FString&)
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FItemPickupLabelOrientationTest, "Sia.Inventory.PickupLabelOrientation", InventoryTests::Flags)
-bool FItemPickupLabelOrientationTest::RunTest(const FString&)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FItemPickupLabelFacingTest, "Sia.Inventory.PickupLabelDefaultFacing", InventoryTests::Flags)
+bool FItemPickupLabelFacingTest::RunTest(const FString&)
 {
     UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
     if (!TestNotNull(TEXT("isolated test world"), World)) return false;
@@ -275,8 +275,8 @@ bool FItemPickupLabelOrientationTest::RunTest(const FString&)
     if (!TestNotNull(TEXT("pickup actor"), Pickup)) return false;
     UTextRenderComponent* Label = Pickup->FindComponentByClass<UTextRenderComponent>();
     if (!TestNotNull(TEXT("pickup label"), Label)) return false;
-    TestTrue(TEXT("pickup label faces the readable side"),
-        Label->GetRelativeRotation().Equals(FRotator(0.f, 180.f, 0.f), 1.f));
+    TestTrue(TEXT("pickup label preserves the default readable facing"),
+        Label->GetRelativeRotation().Equals(FRotator::ZeroRotator, 1.f));
     return true;
 }
 
@@ -285,7 +285,7 @@ bool FInventoryDataTableTest::RunTest(const FString&)
 {
     auto* Data = LoadObject<UDataTable>(nullptr, TEXT("/Game/Data/DT_Items.DT_Items"));
     if (!TestNotNull(TEXT("native item DataTable asset"), Data)) return false;
-    TestEqual(TEXT("sample item rows"), Data->GetRowNames().Num(), 18);
+    TestEqual(TEXT("original and harvesting item rows"), Data->GetRowNames().Num(), 24);
     for (const FName Id : Data->GetRowNames())
     {
         const FItemData* Row = Data->FindRow<FItemData>(Id, TEXT("Test"));

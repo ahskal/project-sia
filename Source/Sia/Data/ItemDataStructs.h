@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
+#include "Data/HarvestDataTypes.h"
 #include "ItemDataStructs.generated.h"
 
 class UTexture2D;
@@ -90,6 +91,9 @@ struct SIA_API FItemData : public FTableRowBase
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item") FItemTextData TextData;
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item") FItemNumericData NumericData;
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item") FItemAssetData AssetData;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item|Tool") EHarvestToolType HarvestToolType = EHarvestToolType::None;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item|Tool")
+    FTransform ToolGripTransform = FTransform(FRotator::ZeroRotator, FVector::ZeroVector, FVector(.55f));
 
     bool IsValidDefinition() const
     {
@@ -97,7 +101,11 @@ struct SIA_API FItemData : public FTableRowBase
             && FMath::IsFinite(NumericData.Weight) && NumericData.Weight >= 0.f
             && FMath::IsFinite(ItemStatistics.RestorationAmount) && ItemStatistics.RestorationAmount >= 0.f
             && FMath::IsFinite(ItemStatistics.ArmorRating) && ItemStatistics.ArmorRating >= 0.f
-            && FMath::IsFinite(ItemStatistics.DamageValue) && ItemStatistics.DamageValue >= 0.f;
+            && FMath::IsFinite(ItemStatistics.DamageValue) && ItemStatistics.DamageValue >= 0.f
+            && (HarvestToolType == EHarvestToolType::None
+                || (ItemType == EItemType::Weapon && EquipmentSlot == EEquipmentSlot::Weapon
+                    && !AssetData.Mesh.IsNull() && ToolGripTransform.IsValid()
+                    && ToolGripTransform.GetScale3D().GetMin() > 0.f));
     }
 };
 
