@@ -22,6 +22,7 @@ AItemPickup::AItemPickup()
     Label = CreateDefaultSubobject<UTextRenderComponent>(TEXT("PickupLabel"));
     Label->SetupAttachment(Root);
     Label->SetRelativeLocation(FVector(0, 0, 45));
+    Label->SetRelativeRotation(FRotator(0.f, 180.f, 0.f));
     Label->SetHorizontalAlignment(EHorizTextAligment::EHTA_Center);
     Label->SetWorldSize(16.f);
     Label->SetTextRenderColor(FColor(230, 195, 125));

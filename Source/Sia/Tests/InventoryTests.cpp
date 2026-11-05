@@ -9,6 +9,8 @@
 #include "CombatHUDWidget.h"
 #include "Components/Border.h"
 #include "Components/BoxComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Components/TextRenderComponent.h"
 #include "BaseCharacter.h"
 #include "World/ItemPickup.h"
 #include "Engine/World.h"
@@ -237,7 +239,12 @@ bool FInventoryDropPlacementTest::RunTest(const FString&)
     auto* Character = World->SpawnActor<ABaseCharacter>();
     if (!TestNotNull(TEXT("character"), Character)) return false;
     UInventoryComponent* Inventory = Character->GetInventory();
-    Inventory->InitializeInventory(InventoryTests::Table());
+    UDataTable* ItemData = LoadObject<UDataTable>(nullptr, TEXT("/Game/Data/DT_Items.DT_Items"));
+    if (!TestNotNull(TEXT("production item data table"), ItemData)) return false;
+    const FItemData* Apple = ItemData->FindRow<FItemData>(TEXT("Apple"), TEXT("Drop placement test"), false);
+    if (!TestNotNull(TEXT("production Apple row"), Apple)) return false;
+    if (!TestTrue(TEXT("production Apple has a mesh"), !Apple->AssetData.Mesh.IsNull())) return false;
+    Inventory->InitializeInventory(ItemData);
     Inventory->TryAddItem(TEXT("Apple"), 1);
 
     TestTrue(TEXT("drop spawns a pickup"), Inventory->DropItemFromSlot(0, 1));
@@ -248,9 +255,28 @@ bool FInventoryDropPlacementTest::RunTest(const FString&)
         break;
     }
     if (!TestNotNull(TEXT("dropped pickup"), DroppedPickup)) return false;
-    TestTrue(TEXT("pickup rests on the floor with its fallback sphere"),
-        FMath::IsNearlyEqual(DroppedPickup->GetActorLocation().Z, 15.f, 1.f));
+    UStaticMeshComponent* DroppedMesh = DroppedPickup->FindComponentByClass<UStaticMeshComponent>();
+    if (!TestNotNull(TEXT("dropped item mesh component"), DroppedMesh)) return false;
+    if (!TestNotNull(TEXT("dropped Apple uses its production mesh"), DroppedMesh->GetStaticMesh().Get())) return false;
+    TestTrue(TEXT("production Apple mesh rests on the floor"),
+        FMath::IsNearlyEqual(DroppedMesh->Bounds.GetBox().Min.Z, 0.f, 1.f));
     TestEqual(TEXT("drop removes the item from inventory"), Inventory->GetTotalQuantity(TEXT("Apple")), 0);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FItemPickupLabelOrientationTest, "Sia.Inventory.PickupLabelOrientation", InventoryTests::Flags)
+bool FItemPickupLabelOrientationTest::RunTest(const FString&)
+{
+    UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
+    if (!TestNotNull(TEXT("isolated test world"), World)) return false;
+    ON_SCOPE_EXIT { World->DestroyWorld(false); };
+
+    AItemPickup* Pickup = World->SpawnActor<AItemPickup>();
+    if (!TestNotNull(TEXT("pickup actor"), Pickup)) return false;
+    UTextRenderComponent* Label = Pickup->FindComponentByClass<UTextRenderComponent>();
+    if (!TestNotNull(TEXT("pickup label"), Label)) return false;
+    TestTrue(TEXT("pickup label faces the readable side"),
+        Label->GetRelativeRotation().Equals(FRotator(0.f, 180.f, 0.f), 1.f));
     return true;
 }
 
