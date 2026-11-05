@@ -23,6 +23,9 @@
 #include "EngineUtils.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/WorldSettings.h"
+#include "GeometryCollection/GeometryCollectionComponent.h"
+#include "GeometryCollection/GeometryCollectionObject.h"
+#include "GeometryCollectionProxyData.h"
 #include "Items/ItemBase.h"
 #include "World/HarvestDebris.h"
 #include "World/HarvestableResource.h"
@@ -181,16 +184,26 @@ bool FHarvestingAssetDefinitionsTest::RunTest(const FString&)
 			&& TreeProfile->ResourceMeshVariants[Index]->GetName() == ExpectedTreeVariants[Index]);
 	}
 	const TArray<FString> ExpectedRockVariants{
-		TEXT("SM_rock01_lod000"), TEXT("SM_rock02_lod000"),
-		TEXT("SM_rock03_lod000"), TEXT("SM_rock04_lod000") };
-	TestEqual(TEXT("rock profile has four requested main meshes"), RockProfile->ResourceMeshVariants.Num(), 4);
+		TEXT("SM_RockPack_RockGroups_01_A"), TEXT("SM_RockPack_RockGroups_02_B"),
+		TEXT("SM_RockPack_Rock_07") };
+	const TArray<FString> ExpectedRockDestructionVariants{
+		TEXT("GC_SM_RockPack_RockGroups_01_A"), TEXT("GC_SM_RockPack_RockGroups_02_B"),
+		TEXT("GC_SM_RockPack_Rock_07") };
+	TestEqual(TEXT("rock profile has the three requested main meshes"), RockProfile->ResourceMeshVariants.Num(), 3);
 	for (int32 Index = 0; Index < ExpectedRockVariants.Num(); ++Index)
 	{
-		TestTrue(FString::Printf(TEXT("rock main variant %d uses the requested STF mesh"), Index + 1),
+		TestTrue(FString::Printf(TEXT("rock main variant %d uses the requested pack mesh"), Index + 1),
 			RockProfile->ResourceMeshVariants.IsValidIndex(Index)
 			&& RockProfile->ResourceMeshVariants[Index]
 			&& RockProfile->ResourceMeshVariants[Index]->GetName() == ExpectedRockVariants[Index]);
+		TestTrue(FString::Printf(TEXT("rock variant %d has its matching Chaos collection"), Index + 1),
+			RockProfile->DestructionVariants.IsValidIndex(Index)
+			&& RockProfile->DestructionVariants[Index]
+			&& RockProfile->DestructionVariants[Index]->GetName() == ExpectedRockDestructionVariants[Index]);
 	}
+	TestTrue(TEXT("rock collision height is extended and cleanup is three seconds"),
+		FMath::IsNearlyEqual(RockProfile->CollisionVerticalScale, 1.4f)
+		&& FMath::IsNearlyEqual(RockProfile->CleanupDelaySeconds, 3.f));
 	TestTrue(TEXT("tree trunk collision is narrow enough to approach"),
 		FMath::IsNearlyEqual(TreeProfile->TrunkCollisionRadius, 35.f)
 		&& FMath::IsNearlyEqual(TreeProfile->TrunkCollisionHeight, 320.f));
@@ -312,20 +325,20 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FRockHarvestGameplayTest,
 	"Sia.Harvesting.RockBreaksOutsideInAndDropsStone", HarvestingTests::Flags)
 bool FRockHarvestGameplayTest::RunTest(const FString&)
 {
-	HarvestingTests::FScopedWorld TestWorld;
-	if (!TestNotNull(TEXT("game world"), TestWorld.World))
+	TSharedPtr<HarvestingTests::FScopedWorld> TestWorld = MakeShared<HarvestingTests::FScopedWorld>();
+	if (!TestNotNull(TEXT("game world"), TestWorld->World))
 		return false;
-	HarvestingTests::AddFloor(TestWorld.World);
-	TestWorld.BeginPlay();
+	HarvestingTests::AddFloor(TestWorld->World);
+	TestWorld->BeginPlay();
 	UClass* RockClass = LoadClass<ARockResource>(nullptr,
 		TEXT("/Game/Sia/Harvesting/Rocks/BP_RockResource.BP_RockResource_C"));
 	URockHarvestProfile* Profile = LoadObject<URockHarvestProfile>(nullptr,
 		TEXT("/Game/Sia/Harvesting/Rocks/Profiles/DA_RockHarvestProfile.DA_RockHarvestProfile"));
 	if (!TestNotNull(TEXT("rock Blueprint"), RockClass) || !TestNotNull(TEXT("rock profile"), Profile))
 		return false;
-	ARockResource* CenterHitRock = TestWorld.World->SpawnActor<ARockResource>(RockClass, FVector(0.f, 0.f, 0.f), FRotator::ZeroRotator);
-	ARockResource* EdgeHitRock = TestWorld.World->SpawnActor<ARockResource>(RockClass, FVector(500.f, 0.f, 0.f), FRotator::ZeroRotator);
-	ARockResource* BrokenRock = TestWorld.World->SpawnActor<ARockResource>(RockClass, FVector(1000.f, 0.f, 0.f), FRotator::ZeroRotator);
+	ARockResource* CenterHitRock = TestWorld->World->SpawnActor<ARockResource>(RockClass, FVector(0.f, 0.f, 0.f), FRotator::ZeroRotator);
+	ARockResource* EdgeHitRock = TestWorld->World->SpawnActor<ARockResource>(RockClass, FVector(500.f, 0.f, 0.f), FRotator::ZeroRotator);
+	ARockResource* BrokenRock = TestWorld->World->SpawnActor<ARockResource>(RockClass, FVector(1000.f, 0.f, 0.f), FRotator::ZeroRotator);
 	if (!TestNotNull(TEXT("center-hit rock"), CenterHitRock)
 		|| !TestNotNull(TEXT("edge-hit rock"), EdgeHitRock)
 		|| !TestNotNull(TEXT("depleted rock"), BrokenRock))
@@ -338,16 +351,30 @@ bool FRockHarvestGameplayTest::RunTest(const FString&)
 		bHasMainRockMesh |= Mesh && Mesh->IsVisible()
 			&& Profile->ResourceMeshVariants.ContainsByPredicate([Mesh](const TObjectPtr<UStaticMesh>& Variant)
 				{ return Variant == Mesh->GetStaticMesh(); });
-	TestTrue(TEXT("rock displays one of the four requested main meshes"), bHasMainRockMesh);
+	TestTrue(TEXT("rock displays one of the three requested main meshes"), bHasMainRockMesh);
 	UBoxComponent* RockCollision = BrokenRock->FindComponentByClass<UBoxComponent>();
-	TestTrue(TEXT("rock collision follows the selected main mesh bounds"), RockCollision
-		&& RockCollision->GetUnscaledBoxExtent().X < 100.f
-		&& RockCollision->GetUnscaledBoxExtent().Y < 100.f);
+	UStaticMeshComponent* MainRockMesh = nullptr;
+	for (UStaticMeshComponent* Mesh : TInlineComponentArray<UStaticMeshComponent*>(BrokenRock))
+		if (Mesh && Mesh->GetFName() == TEXT("ResourceMesh"))
+			MainRockMesh = Mesh;
+	TestTrue(TEXT("rock collision uses the mesh footprint and extends 1.4 times vertically"), RockCollision
+		&& MainRockMesh && MainRockMesh->GetStaticMesh()
+		&& FMath::IsNearlyEqual(RockCollision->GetUnscaledBoxExtent().X,
+			MainRockMesh->GetStaticMesh()->GetBounds().BoxExtent.X, 1.f)
+		&& FMath::IsNearlyEqual(RockCollision->GetUnscaledBoxExtent().Y,
+			MainRockMesh->GetStaticMesh()->GetBounds().BoxExtent.Y, 1.f)
+		&& FMath::IsNearlyEqual(RockCollision->GetUnscaledBoxExtent().Z,
+			MainRockMesh->GetStaticMesh()->GetBounds().BoxExtent.Z * Profile->CollisionVerticalScale, 1.f));
+	UGeometryCollectionComponent* Destruction = BrokenRock->FindComponentByClass<UGeometryCollectionComponent>();
+	TestTrue(TEXT("each rock is backed by a pre-fractured collection"), Destruction
+		&& Destruction->GetRestCollection()
+		&& Profile->DestructionVariants.Contains(Destruction->GetRestCollection())
+		&& Destruction->GetNumElements(FName(TEXT("Transform"))) > 1);
 	CenterHitRock->ReceiveHarvestHit({ 1.f, EHarvestToolType::None, FVector(0.f, 0.f, 20.f), FVector::UpVector, FVector::ForwardVector, nullptr });
 	EdgeHitRock->ReceiveHarvestHit({ 1.f, EHarvestToolType::None, FVector(400.f, 0.f, 20.f), FVector::UpVector, FVector::ForwardVector, nullptr });
 	const FHarvestRockPiece& FirstPiece = Profile->Pieces[0];
 	int32 FirstPieceDebrisCount = 0;
-	for (TActorIterator<AHarvestDebris> It(TestWorld.World); It; ++It)
+	for (TActorIterator<AHarvestDebris> It(TestWorld->World); It; ++It)
 	{
 		const UStaticMeshComponent* Mesh = It->FindComponentByClass<UStaticMeshComponent>();
 		if (Mesh && Mesh->GetStaticMesh() == FirstPiece.Mesh)
@@ -358,8 +385,8 @@ bool FRockHarvestGameplayTest::RunTest(const FString&)
 		FVector::UpVector, FVector::ForwardVector, nullptr };
 	BrokenRock->ReceiveHarvestHit(LethalHit);
 	TestTrue(TEXT("rock reaches depleted state"), BrokenRock->IsDepleted());
-	TestEqual(TEXT("broken rock produces one Stone pickup"), HarvestingTests::CountPickups(TestWorld.World, TEXT("Stone")), 1);
-	AItemPickup* Stone = HarvestingTests::FindPickup(TestWorld.World, TEXT("Stone"));
+	TestEqual(TEXT("broken rock produces one Stone pickup"), HarvestingTests::CountPickups(TestWorld->World, TEXT("Stone")), 1);
+	AItemPickup* Stone = HarvestingTests::FindPickup(TestWorld->World, TEXT("Stone"));
 	TestTrue(TEXT("stone quantity follows the profile range"), Stone && Stone->Quantity >= 2 && Stone->Quantity <= 4);
 	if (Stone)
 	{
@@ -371,6 +398,45 @@ bool FRockHarvestGameplayTest::RunTest(const FString&)
 				FMath::IsNearlyEqual(Mesh->Bounds.GetBox().Min.Z, 0.f, 1.f));
 		}
 	}
+	TestTrue(TEXT("the standing rock is hidden while Chaos debris is active"), MainRockMesh
+		&& !MainRockMesh->IsVisible() && Destruction && Destruction->IsVisible()
+		&& Destruction->IsSimulatingPhysics() && BrokenRock->GetActorEnableCollision());
+	TestTrue(TEXT("the rock schedules cleanup after exactly three seconds"),
+		FMath::IsNearlyEqual(BrokenRock->GetLifeSpan(), 3.f));
+
+	const TWeakObjectPtr<ARockResource> WeakRock(BrokenRock);
+	const TWeakObjectPtr<UGeometryCollectionComponent> WeakDestruction(Destruction);
+	ADD_LATENT_AUTOMATION_COMMAND(FFunctionLatentCommand(
+		[this, TestWorld, WeakRock, WeakDestruction, Elapsed = 0.f, bObservedFracture = false]() mutable
+		{
+			if (!TestWorld->World)
+			{
+				TestFalse(TEXT("rock fracture world remains available"), true);
+				return true;
+			}
+			const float DeltaSeconds = .05f;
+			TestWorld->World->Tick(ELevelTick::LEVELTICK_All, DeltaSeconds);
+			Elapsed += DeltaSeconds;
+			if (WeakDestruction.IsValid())
+			{
+				if (FGeometryDynamicCollection* DynamicCollection = WeakDestruction->GetDynamicCollection())
+				{
+					const FGeometryCollectionDynamicStateFacade DynamicState(*DynamicCollection);
+					if (DynamicState.IsValid())
+					{
+						for (int32 Index = 0; Index < WeakDestruction->GetNumElements(FName(TEXT("Transform"))); ++Index)
+							bObservedFracture |= DynamicState.HasBrokenOff(Index);
+					}
+				}
+			}
+			if (Elapsed >= 3.1f)
+			{
+				TestTrue(TEXT("Chaos reports at least one fragment detached from its cluster"), bObservedFracture);
+				TestFalse(TEXT("the depleted rock disappears after the cleanup delay"), WeakRock.IsValid());
+				return true;
+			}
+			return false;
+		}));
 	return true;
 }
 
@@ -422,12 +488,13 @@ bool FCharacterComboAndDualHitboxTest::RunTest(const FString&)
 	if (TestNotNull(TEXT("held tool visual"), HeldTool))
 	{
 		TestFalse(TEXT("equipped axe is visible"), HeldTool->bHiddenInGame);
-		TestEqual(TEXT("equipped axe attaches to the right hand"), HeldTool->GetAttachSocketName(), FName(TEXT("hand_r")));
+		TestEqual(TEXT("equipped axe attaches to the authored right-hand grip"), HeldTool->GetAttachSocketName(), FName(TEXT("HandGrip_R")));
 		if (TestNotNull(TEXT("equipped axe mesh"), HeldTool->GetStaticMesh().Get()))
 			TestEqual(TEXT("equipped axe uses the extracted axe mesh"), HeldTool->GetStaticMesh()->GetName(), FString(TEXT("SM_Axe")));
-		TestTrue(TEXT("equipped axe grip rotates its long axis forward"),
-			FVector::DotProduct(HeldTool->GetRelativeTransform().TransformVectorNoScale(FVector::UpVector),
-				FVector::ForwardVector) > .99f);
+		const FVector AxeLongAxis = HeldTool->GetComponentTransform()
+			.TransformVectorNoScale(FVector::UpVector).GetSafeNormal();
+		TestTrue(TEXT("equipped axe handle points upward beside the character"),
+			FVector::DotProduct(AxeLongAxis, FVector::UpVector) > .9f);
 	}
 	UClass* TreeClass = LoadClass<ATreeResource>(nullptr,
 		TEXT("/Game/Sia/Harvesting/Trees/BP_TreeResource.BP_TreeResource_C"));

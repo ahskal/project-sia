@@ -20,10 +20,14 @@
       "/Game/STF/Pack03-LandscapePro/Environment/Foliage/GreenTrees/tree05/SM_dead-tree05"
     ],
     "rock_main_sources": [
-      "/Game/STF/Pack03-LandscapePro/Environment/Foliage/RocksMedium/SM_rock01_lod000",
-      "/Game/STF/Pack03-LandscapePro/Environment/Foliage/RocksMedium/SM_rock02_lod000",
-      "/Game/STF/Pack03-LandscapePro/Environment/Foliage/RocksMedium/SM_rock03_lod000",
-      "/Game/STF/Pack03-LandscapePro/Environment/Foliage/RocksMedium/SM_rock04_lod000"
+      "/Game/RocksPackDEMO/Environment/Rocks/SM_RockPack_RockGroups_01_A",
+      "/Game/RocksPackDEMO/Environment/Rocks/SM_RockPack_RockGroups_02_B",
+      "/Game/RocksPackDEMO/Environment/Rocks/SM_RockPack_Rock_07"
+    ],
+    "rock_destruction_variants": [
+      "/Game/Sia/Harvesting/Rocks/Destruction/GC_SM_RockPack_RockGroups_01_A",
+      "/Game/Sia/Harvesting/Rocks/Destruction/GC_SM_RockPack_RockGroups_02_B",
+      "/Game/Sia/Harvesting/Rocks/Destruction/GC_SM_RockPack_Rock_07"
     ],
     "rock_source": "/Game/STF/Pack03-LandscapePro/Environment/Foliage/RocksSmall/SM_RockGroup01",
     "tool_source": "/Game/Fab/Survival_Game_Tool_Pack/survival_game_tool_pack_free_agustin_honnun/StaticMeshes/survival_game_tool_pack_free_agustin_honnun",
@@ -41,13 +45,12 @@
     "rock": {
       "health": 80,
       "pickaxe_multiplier": 1.5,
+      "collision_vertical_scale": 1.4,
+      "cleanup_delay_seconds": 3.0,
+      "destruction": "uniform Voronoi Geometry Collection; crumble at depleted health",
       "edge_piece_order": "outside-in"
     },
-    "axe_grip_rotation_degrees": {
-      "pitch": 90,
-      "yaw": 0,
-      "roll": 0
-    },
+    "axe_attachment_socket": "HandGrip_R",
     "rock_piece_ground_offset": "each piece half-height"
   }
 }

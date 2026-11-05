@@ -23,6 +23,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "GeometryCollectionPlugin",
+			"Enabled": true
+		},
+		{
 			"Name": "MCPClientToolset",
 			"Enabled": true
 		},

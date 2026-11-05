@@ -5,6 +5,7 @@
 #include "HarvestDataTypes.generated.h"
 
 class UDataTable;
+class UGeometryCollection;
 class UStaticMesh;
 class AActor;
 
@@ -141,6 +142,12 @@ class SIA_API URockHarvestProfile : public UHarvestProfile
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Harvest|Rock|Collision", meta = (ClampMin = "1.0"))
+	float CollisionVerticalScale = 1.4f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Harvest|Rock|Destruction")
+	TArray<TObjectPtr<UGeometryCollection>> DestructionVariants;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Harvest|Rock")
 	TArray<FHarvestRockPiece> Pieces;
 

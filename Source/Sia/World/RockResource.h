@@ -5,6 +5,7 @@
 #include "RockResource.generated.h"
 
 class UStaticMeshComponent;
+class UGeometryCollectionComponent;
 
 UCLASS(Blueprintable)
 class SIA_API ARockResource : public AHarvestableResource
@@ -23,7 +24,11 @@ private:
 	void ReleaseNextPieces(int32 Count);
 
 	UPROPERTY(Transient)
+	TObjectPtr<UGeometryCollectionComponent> DestructionComponent;
+
+	UPROPERTY(Transient)
 	TArray<TObjectPtr<UStaticMeshComponent>> PieceComponents;
 
+	int32 SelectedVariationIndex = INDEX_NONE;
 	int32 NextPieceIndex = 0;
 };

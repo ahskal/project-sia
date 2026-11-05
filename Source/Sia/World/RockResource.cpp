@@ -3,10 +3,16 @@
 #include "Components/StaticMeshComponent.h"
 #include "Data/HarvestDataTypes.h"
 #include "Engine/StaticMesh.h"
+#include "GeometryCollection/GeometryCollectionComponent.h"
+#include "GeometryCollection/GeometryCollectionObject.h"
 
 ARockResource::ARockResource()
 {
 	ResourceMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	DestructionComponent = CreateDefaultSubobject<UGeometryCollectionComponent>(TEXT("DestructionComponent"));
+	DestructionComponent->SetupAttachment(SceneRoot);
+	DestructionComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	DestructionComponent->SetVisibility(false, true);
 }
 
 bool ARockResource::ConfigureResourcePresentation(FText& OutError)
@@ -17,20 +23,45 @@ bool ARockResource::ConfigureResourcePresentation(FText& OutError)
 		OutError = FText::FromString(TEXT("바위 액터에 바위 수확 프로필이 지정되지 않았습니다."));
 		return false;
 	}
-	const int32 VariationIndex = FMath::RandRange(0, RockProfile->ResourceMeshVariants.Num() - 1);
-	UStaticMesh* StandingMesh = RockProfile->ResourceMeshVariants[VariationIndex];
+	if (RockProfile->ResourceMeshVariants.IsEmpty()
+		|| RockProfile->DestructionVariants.Num() != RockProfile->ResourceMeshVariants.Num())
+	{
+		OutError = FText::FromString(TEXT("바위 메시와 Geometry Collection 바리에이션 수가 일치하지 않습니다."));
+		return false;
+	}
+
+	SelectedVariationIndex = FMath::RandRange(0, RockProfile->ResourceMeshVariants.Num() - 1);
+	if (!RockProfile->ResourceMeshVariants.IsValidIndex(SelectedVariationIndex)
+		|| !RockProfile->DestructionVariants.IsValidIndex(SelectedVariationIndex))
+	{
+		OutError = FText::FromString(TEXT("바위 메시와 Geometry Collection 바리에이션을 선택하지 못했습니다."));
+		return false;
+	}
+	UStaticMesh* StandingMesh = RockProfile->ResourceMeshVariants[SelectedVariationIndex];
+	UGeometryCollection* DestructionCollection = RockProfile->DestructionVariants[SelectedVariationIndex];
 	if (!StandingMesh)
 	{
 		OutError = FText::FromString(TEXT("바위 수확 프로필에서 사용할 메시를 선택하지 못했습니다."));
 		return false;
 	}
+	if (!DestructionCollection || !DestructionComponent)
+	{
+		OutError = FText::FromString(TEXT("선택된 바위 메시의 Chaos Geometry Collection이 없습니다."));
+		return false;
+	}
 	ResourceMesh->SetStaticMesh(StandingMesh);
 	ResourceMesh->SetVisibility(true, true);
 	ResourceMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	DestructionComponent->SetRestCollection(DestructionCollection);
+	DestructionComponent->SetRelativeTransform(ResourceMesh->GetRelativeTransform());
+	DestructionComponent->SetVisibility(false, true);
+	DestructionComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	PieceComponents.Reset();
 	NextPieceIndex = 0;
 	const FBoxSphereBounds MainBounds = StandingMesh->GetBounds();
-	SetResourceCollisionBounds(MainBounds.Origin, MainBounds.BoxExtent);
+	FVector CollisionExtent = MainBounds.BoxExtent;
+	CollisionExtent.Z *= RockProfile->CollisionVerticalScale;
+	SetResourceCollisionBounds(MainBounds.Origin, CollisionExtent);
 
 	for (int32 Index = 0; Index < RockProfile->Pieces.Num(); ++Index)
 	{
@@ -60,11 +91,15 @@ bool ARockResource::ConfigureResourcePresentation(FText& OutError)
 		PieceComponent->RegisterComponent();
 		PieceComponents.Add(PieceComponent);
 	}
-	return ResourceMesh->GetStaticMesh() && !PieceComponents.IsEmpty();
+	return ResourceMesh->GetStaticMesh() && DestructionComponent->GetRestCollection()
+		&& !PieceComponents.IsEmpty();
 }
 
-void ARockResource::OnAcceptedHit(const FHarvestHitContext&, const bool)
+void ARockResource::OnAcceptedHit(const FHarvestHitContext&, const bool bWasLethal)
 {
+	if (bWasLethal)
+		return;
+
 	const URockHarvestProfile* RockProfile = Cast<URockHarvestProfile>(Profile);
 	if (RockProfile)
 		ReleaseNextPieces(RockProfile->PiecesReleasedPerHit);
@@ -72,7 +107,20 @@ void ARockResource::OnAcceptedHit(const FHarvestHitContext&, const bool)
 
 void ARockResource::OnResourceDepleted(const FHarvestHitContext& Hit)
 {
-	ReleaseNextPieces(PieceComponents.Num());
+	ResourceMesh->SetVisibility(false, true);
+	// Re-enable actor-level collision so the Geometry Collection can collide with the world.
+	SetActorEnableCollision(true);
+	if (DestructionComponent)
+	{
+		DestructionComponent->SetRelativeTransform(ResourceMesh->GetRelativeTransform());
+		DestructionComponent->SetCollisionObjectType(ECC_PhysicsBody);
+		DestructionComponent->SetCollisionResponseToAllChannels(ECR_Block);
+		DestructionComponent->SetEnableGravity(true);
+		DestructionComponent->SetVisibility(true, true);
+		DestructionComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		DestructionComponent->SetSimulatePhysics(true);
+		DestructionComponent->CrumbleActiveClusters();
+	}
 	const URockHarvestProfile* RockProfile = Cast<URockHarvestProfile>(Profile);
 	SetLifeSpan(RockProfile ? RockProfile->CleanupDelaySeconds : 1.f);
 	(void)Hit;

@@ -234,9 +234,11 @@ void ABaseCharacter::RefreshHeldToolVisual()
         return;
     }
 
-    if (!GetMesh()->DoesSocketExist(TEXT("hand_r")))
+    const FName GripSocket = GetMesh()->DoesSocketExist(TEXT("HandGrip_R"))
+        ? FName(TEXT("HandGrip_R")) : FName(TEXT("hand_r"));
+    if (!GetMesh()->DoesSocketExist(GripSocket))
     {
-        UE_LOG(LogTemp, Error, TEXT("Character '%s' cannot attach a harvesting tool: hand_r socket/bone is missing."),
+        UE_LOG(LogTemp, Error, TEXT("Character '%s' cannot attach a harvesting tool: no right-hand grip socket or bone is available."),
             *GetName());
         HeldToolMesh->SetHiddenInGame(true);
         return;
@@ -251,7 +253,7 @@ void ABaseCharacter::RefreshHeldToolVisual()
     }
 
     HeldToolMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-        TEXT("hand_r"));
+        GripSocket);
     HeldToolMesh->SetStaticMesh(ToolMesh);
     HeldToolMesh->SetRelativeTransform(ToolData->ToolGripTransform);
     HeldToolMesh->SetHiddenInGame(false);

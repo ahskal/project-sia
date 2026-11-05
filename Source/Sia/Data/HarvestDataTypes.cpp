@@ -99,12 +99,23 @@ bool URockHarvestProfile::HasValidResourcePresentation(FText& OutError) const
 {
 	if (!Super::HasValidResourcePresentation(OutError))
 		return false;
-	if (Pieces.IsEmpty() || PiecesReleasedPerHit <= 0 || PiecesReleasedPerHit > 4
+	if (!FMath::IsFinite(CollisionVerticalScale) || CollisionVerticalScale < 1.f
+		|| DestructionVariants.Num() != ResourceMeshVariants.Num()
+		|| ResourceMeshVariants.IsEmpty()
+		|| Pieces.IsEmpty() || PiecesReleasedPerHit <= 0 || PiecesReleasedPerHit > 4
 		|| !FMath::IsFinite(PieceImpulse) || PieceImpulse < 0.f
 		|| !FMath::IsFinite(CleanupDelaySeconds) || CleanupDelaySeconds <= 0.f)
 	{
-		OutError = FText::FromString(TEXT("바위 수확 프로필에 유효한 파괴 조각이 없습니다."));
+		OutError = FText::FromString(TEXT("바위 수확 프로필의 충돌 크기, Geometry Collection 또는 파괴 조각 설정이 올바르지 않습니다."));
 		return false;
+	}
+	for (const TObjectPtr<UGeometryCollection>& Collection : DestructionVariants)
+	{
+		if (!Collection)
+		{
+			OutError = FText::FromString(TEXT("바위 메시 바리에이션과 같은 순서의 Geometry Collection이 필요합니다."));
+			return false;
+		}
 	}
 	for (const FHarvestRockPiece& Piece : Pieces)
 	{
